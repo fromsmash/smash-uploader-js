@@ -1,6 +1,6 @@
 {
-  "name": "smash-uploader",
-  "version": "0.0.2",
+  "name": "@smash-sdk/uploader-js",
+  "version": "0.0.1",
   "description": "",
   "main": "./dist/SmashUploader.js",
   "files": [
@@ -28,7 +28,7 @@
     "build:roll": "npm run build && npm run rollup"
   },
   "author": "Smash & Co",
-  "license": "ISC",
+  "license": "MIT",
   "devDependencies": {
     "@rollup/plugin-json": "^4.1.0",
     "@types/bluebird": "^3.5.37",
@@ -61,5 +61,17 @@
     "jwt-decode": "^3.1.2",
     "moment": "^2.29.4",
     "uuid": "^8.3.2"
-  }
+  },
+  "types": "./dist/SmashUploader.d.ts",
+  "directories": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fromsmash/smash-uploader-js.git"
+  },
+  "bugs": {
+    "url": "https://github.com/fromsmash/smash-uploader-js/issues"
+  },
+  "homepage": "https://github.com/fromsmash/smash-uploader-js#readme"
 }
