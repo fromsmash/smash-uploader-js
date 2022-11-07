@@ -15,11 +15,6 @@ export default [
         },
         plugins: [
             json(),
-            builtins({ fs: true }),
-            resolve({
-                preferBuiltins: false,
-                browser: true,
-            }),
             commonjs(),
             globals(),
         ],
@@ -40,7 +35,7 @@ export default [
                 preferBuiltins: false,
                 browser: true,
             }),
-            commonjs(), // 
+            commonjs(),
             globals(),
             terser(),
         ],
