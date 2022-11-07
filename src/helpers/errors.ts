@@ -1,4 +1,4 @@
-import { SDKError } from "smash-sdk-core";
+import { SDKError } from "@smash-sdk/core";
 
 export interface BodyError {
     name: string,

@@ -1,4 +1,4 @@
-import { SDKError, UnknownError } from 'smash-sdk-core';
+import { SDKError, UnknownError } from '@smash-sdk/core';
 import { computeDelay } from '../helpers/delay';
 import { Task } from '../modules/tasks/Task';
 

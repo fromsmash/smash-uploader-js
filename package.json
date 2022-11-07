@@ -54,12 +54,12 @@
     "rollup": "^2.79.1"
   },
   "dependencies": {
-    "@smash-sdk/transfer": "^0.0.2",
+    "@smash-sdk/transfer": "^0.0.3",
     "bluebird": "^3.7.2",
     "deep-equal": "^2.1.0",
     "jwt-decode": "^3.1.2",
     "moment": "^2.29.4",
-    "@smash-sdk/core": "^0.0.1",
+    "@smash-sdk/core": "^0.0.2",
     "uuid": "^8.3.2"
   }
 }

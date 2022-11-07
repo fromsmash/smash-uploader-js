@@ -1,6 +1,6 @@
 import { UploadTransferFilePartInput, UploadTransferFilePartOutput } from '@smash-sdk/transfer/10-2019/types/UploadTransferFilePart/UploadTransferFilePart';
 import fs from 'fs';
-import { SDKError, UploadProgressEvent } from 'smash-sdk-core';
+import { SDKError, UploadProgressEvent } from '@smash-sdk/core';
 import { Context } from '../../core/Context';
 import { FileItem } from '../../core/FileItem';
 import { Part } from '../../core/Part';

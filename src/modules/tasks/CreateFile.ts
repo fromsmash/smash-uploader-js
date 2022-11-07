@@ -1,7 +1,7 @@
 import { CreateTransferFileInput, CreateTransferFileOutput } from '@smash-sdk/transfer/07-2020/types/CreateTransferFile/CreateTransferFile';
 import { GetTeamTransferFileOutput } from '@smash-sdk/transfer/10-2019/types/GetTeamTransferFile/GetTeamTransferFile';
 import { GetTransferFileOutput } from '@smash-sdk/transfer/10-2019/types/GetTransferFile/GetTransferFile';
-import { SDKError } from 'smash-sdk-core';
+import { SDKError } from '@smash-sdk/core';
 import { Context } from '../../core/Context';
 import { FileItem } from '../../core/FileItem';
 import { Transfer } from '../../core/Transfer';

@@ -1,4 +1,4 @@
-import { SDKError } from 'smash-sdk-core';
+import { SDKError } from '@smash-sdk/core';
 import { Context } from '../../core/Context';
 import { ContextContainer } from '../../core/ContextContainer';
 import { TaskError } from '../../errors/TaskError';

@@ -1,7 +1,7 @@
 import { GetTeamTransferOutput } from '@smash-sdk/transfer/10-2019/types/GetTeamTransfer/GetTeamTransfer';
 import { GetTransferOutput } from '@smash-sdk/transfer/10-2019/types/GetTransfer/GetTransfer';
 import { LockTransferInput, LockTransferOutput } from '@smash-sdk/transfer/10-2019/types/LockTransfer/LockTransfer';
-import { SDKError } from 'smash-sdk-core/dist';
+import { SDKError } from '@smash-sdk/core/dist';
 import { Context } from '../../core/Context';
 import { Transfer } from '../../core/Transfer';
 import { TaskError } from '../../errors/TaskError';

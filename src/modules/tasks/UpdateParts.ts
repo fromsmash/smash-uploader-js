@@ -1,5 +1,5 @@
 import { UpdateTransferFilePartsInput, UpdateTransferFilePartsOutput } from '@smash-sdk/transfer/10-2019/types/UpdateTransferFileParts/UpdateTransferFileParts';
-import { SDKError } from 'smash-sdk-core/dist';
+import { SDKError } from '@smash-sdk/core/dist';
 import { Context } from '../../core/Context';
 import { FileItem } from '../../core/FileItem';
 import { Parts } from '../../core/Parts';

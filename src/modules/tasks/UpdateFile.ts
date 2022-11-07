@@ -1,5 +1,5 @@
 import { UpdateTransferFileInput, UpdateTransferFileOutput } from '@smash-sdk/transfer/10-2019/types/UpdateTransferFile/UpdateTransferFile';
-import { SDKError } from 'smash-sdk-core/dist';
+import { SDKError } from '@smash-sdk/core/dist';
 import { Context } from '../../core/Context';
 import { FileItem } from '../../core/FileItem';
 import { Transfer } from '../../core/Transfer';

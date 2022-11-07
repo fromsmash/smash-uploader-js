@@ -1,6 +1,6 @@
 import { CreateTeamTransferInput, CreateTeamTransferOutput } from '@smash-sdk/transfer/10-2019/types/CreateTeamTransfer/CreateTeamTransfer';
 import { CreateTransferInput, CreateTransferOutput } from '@smash-sdk/transfer/10-2019/types/CreateTransfer/CreateTransfer';
-import { SDKError } from 'smash-sdk-core';
+import { SDKError } from '@smash-sdk/core';
 import { Context } from '../../core/Context';
 import { CustomizationInput, Transfer } from '../../core/Transfer';
 import { TaskError } from '../../errors/TaskError';
