@@ -276,10 +276,10 @@ export class UploadPart extends AbstractTask<Task> {
         return new Promise((resolve, reject) => {
             try {
                 const readStream = fs.createReadStream(originalFile, { start: part.startIndex, end: part.startIndex! + part.lengthToRead! - 1 }); // FIX ME "!"
-                let blob = '';
-                readStream.on('error', error => reject(error));// FIX ME improve error management
-                readStream.on('data', (chunk: string | Buffer) => {
-                    blob += chunk;
+                let blob = Buffer.from("");
+                readStream.on('error', error => reject(error)); // FIX ME improve error management
+                readStream.on('data', (chunk) => {
+                    blob = Buffer.concat([blob, chunk as Buffer]);
                 });
                 readStream.on('end', () => {
                     resolve(blob);
