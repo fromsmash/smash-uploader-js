@@ -59,7 +59,7 @@
     "deep-equal": "^2.1.0",
     "jwt-decode": "^3.1.2",
     "moment": "^2.29.4",
-    "@smash-sdk/core": "^0.0.2",
+    "@smash-sdk/core": "^0.0.1",
     "uuid": "^8.3.2"
   }
 }
