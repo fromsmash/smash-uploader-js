@@ -1,7 +1,6 @@
 import resolve from 'rollup-plugin-node-resolve';
 import commonjs from 'rollup-plugin-commonjs';
 import builtins from 'rollup-plugin-node-builtins';
-import nodePolyfills from 'rollup-plugin-polyfill-node';
 import globals from 'rollup-plugin-node-globals';
 import { terser } from 'rollup-plugin-terser';
 import json from '@rollup/plugin-json';
@@ -16,14 +15,13 @@ export default [
         },
         plugins: [
             json(),
-            builtins(),
+            builtins({ fs: true }),
             resolve({
                 preferBuiltins: false,
                 browser: true,
             }),
             commonjs(),
             globals(),
-            nodePolyfills(),
         ],
     },
     {
