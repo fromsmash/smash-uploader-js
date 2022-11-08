@@ -62,5 +62,17 @@
     "jwt-decode": "^3.1.2",
     "moment": "^2.29.4",
     "uuid": "^8.3.2"
-  }
+  },
+  "types": "./dist/SmashUploader.d.ts",
+  "directories": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fromsmash/smash-uploader-js.git"
+  },
+  "bugs": {
+    "url": "https://github.com/fromsmash/smash-uploader-js/issues"
+  },
+  "homepage": "https://github.com/fromsmash/smash-uploader-js#readme"
 }
