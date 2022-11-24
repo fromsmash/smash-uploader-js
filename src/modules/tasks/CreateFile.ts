@@ -20,7 +20,7 @@ export class CreateFile extends AbstractTask<Task> {
         this.context.transferSdk.errors.CreateTransferFileError.Unauthorized,
         this.context.transferSdk.errors.CreateTransferFileError.BadRequest,
         this.context.transferSdk.errors.CreateTransferFileError.NotFound,
-        this.context.transferSdk.errors.CreateTransferFileError.AlreadyLocked,
+        this.context.transferSdk.errors.CreateTransferFileError.TransferAlreadyLocked,
         this.context.transferSdk.errors.CreateTransferFileError.TransferIsInQueue,
         this.context.transferSdk.errors.CreateTransferFileError.UnknownError,
     ];
@@ -47,8 +47,8 @@ export class CreateFile extends AbstractTask<Task> {
                 resolve(file);
             } catch (error: unknown) {
                 if (error instanceof this.context.transferSdk.errors.CreateTransferFileError.Conflict) {
-                    if (this.transfer.team) {
-                        const file = await this.context.transferSdk.getTeamTransferFile({ transferId: this.transfer.id, fileId: this.file.id, teamId: this.transfer.team });
+                    if (this.transfer.teamId) {
+                        const file = await this.context.transferSdk.getTeamTransferFile({ transferId: this.transfer.id, fileId: this.file.id, teamId: this.transfer.teamId });
                         resolve(file);
                     } else {
                         const file = await this.context.transferSdk.getTransferFile({ transferId: this.transfer.id, fileId: this.file.id });
@@ -68,7 +68,7 @@ export class CreateFile extends AbstractTask<Task> {
             } catch (error) {
                 // TODO CORS Error (only browser)
                 if (error instanceof this.context.transferSdk.errors.CreateTransferFileError.Unauthorized ||
-                    error instanceof this.context.transferSdk.errors.CreateTransferFileError.AlreadyLocked ||
+                    error instanceof this.context.transferSdk.errors.CreateTransferFileError.TransferAlreadyLocked ||
                     error instanceof this.context.transferSdk.errors.CreateTransferFileError.BadRequest ||
                     error instanceof this.context.transferSdk.errors.CreateTransferFileError.NotFound ||
                     error instanceof this.context.transferSdk.errors.CreateTransferFileError.TransferIsInQueue ||

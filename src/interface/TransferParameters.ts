@@ -27,8 +27,7 @@ interface UpdateTransfer {
 }
 
 interface CreateTransfer extends UpdateTransfer {
-    team?: string,
-    domain?: string,
+    teamId?: string,
     customUrl?: string,
 }
 

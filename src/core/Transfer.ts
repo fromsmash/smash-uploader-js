@@ -49,8 +49,8 @@ export class Transfer {
     public created?: string;
     public modified?: string;
     public deleted?: string;
-    public team?: string;
-    public domain: string = 'fromsmash.com'; // FIX ME
+    public teamId?: string;
+    public domain?: string;
     public customUrl?: string;
     public language?: string;
     public availabilityStartDate?: string;
@@ -88,8 +88,7 @@ export class Transfer {
         //sanity check transferParameters with joi
         this.files = new Files(transferParameters.files);
         if (transferParameters) {
-            this.team = transferParameters.team;
-            this.domain = transferParameters.domain || this.domain;
+            this.teamId = transferParameters.teamId;
             this.customUrl = transferParameters.customUrl;
             this.language = transferParameters.language;
             this.availabilityDuration = transferParameters.availabilityDuration;
@@ -172,7 +171,7 @@ export class Transfer {
     }
 
     public populateCreatedFile(fileToCreate: FileItem, { file }: CreateTransferFileOutput | GetTransferFileOutput | GetTeamTransferFileOutput): FileItem {
-        fileToCreate.populateCreatedFile({ file });
+        fileToCreate.populateCreatedFile({ file } as CreateTransferFileOutput | GetTransferFileOutput | GetTeamTransferFileOutput);
         this.filesProcessing.add(fileToCreate);
         return fileToCreate;
     }

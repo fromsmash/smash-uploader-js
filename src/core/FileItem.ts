@@ -11,7 +11,6 @@ import { UploadTransferFilePartOutput } from '@smash-sdk/transfer/10-2019/types/
 import { GetTeamTransferFileOutput } from '@smash-sdk/transfer/10-2019/types/GetTeamTransferFile/GetTeamTransferFile';
 import { GetTransferFileOutput } from '@smash-sdk/transfer/10-2019/types/GetTransferFile/GetTransferFile';
 
-
 export enum UploadeMode {
     Standard = 'Standard',
     FastUpload = 'FastUpload',

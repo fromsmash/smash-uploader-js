@@ -1,1 +1,0 @@
-# smash-uploader-js

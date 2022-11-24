@@ -30,7 +30,7 @@ export class CreateTransfer extends AbstractTask<Task> {
     constructor(context: Context) {
         super(context);
         this.transfer = context.transfer!;
-        if (context?.transfer?.team) {
+        if (context?.transfer?.teamId) {
             this.createTeamTransferParameters = {
                 size: context.transfer.size,
                 customUrl: context.transfer.customUrl,
@@ -46,7 +46,7 @@ export class CreateTransfer extends AbstractTask<Task> {
                 notificationType: context.transfer.notificationType,
                 description: context.transfer.description,
                 filesNumber: context.transfer.filesNumber,
-                team: context.transfer.team,
+                teamId: context.transfer.teamId,
                 domain: context.transfer.domain,
             };
         } else {

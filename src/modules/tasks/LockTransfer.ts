@@ -45,11 +45,11 @@ export class LockTransfer extends AbstractTask<Task> {
                 resolve(transfer);
             } catch (error: unknown) {
                 if (error instanceof this.context.transferSdk.errors.LockTransferError.TransferAlreadyLocked) {
-                    if (this.transfer.team) {
-                        const transfer = await this.context.transferSdk.getTeamTransfer({ transferId: this.transfer.id, teamId: this.transfer.team });
+                    if (this.transfer.teamId) {
+                        const transfer = await this.context.transferSdk.getTeamTransfer({ transferId: this.transfer.id, teamId: this.transfer.teamId });
                         resolve(transfer);
                     } else {
-                        const transfer = await this.context.transferSdk.getTransfer({ id: this.transfer.id });
+                        const transfer = await this.context.transferSdk.getTransfer({ transferId: this.transfer.id });
                         resolve(transfer);
                     }
                 } else {
@@ -67,7 +67,6 @@ export class LockTransfer extends AbstractTask<Task> {
                 if (
                     error instanceof this.context.transferSdk.errors.LockTransferError.TransferAlreadyLocked ||
                     error instanceof this.context.transferSdk.errors.LockTransferError.NotFound ||
-                    error instanceof this.context.transferSdk.errors.LockTransferError.TransferAlreadyLocked ||
                     error instanceof this.context.transferSdk.errors.LockTransferError.TransferIsDirty ||
                     error instanceof this.context.transferSdk.errors.LockTransferError.Unauthorized ||
                     error instanceof this.context.transferSdk.errors.LockTransferError.BadRequest ||
