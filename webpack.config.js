@@ -31,7 +31,17 @@ const server = {
 };
 
 const browser = {
-    ...server,
+    mode: 'production',
+    entry: './src/SmashUploader.ts',
+    module: {
+        rules: [
+            {
+                test: /\.ts?$/,
+                use: 'ts-loader',
+                exclude: path.resolve(__dirname, 'node_modules'),
+            },
+        ],
+    },
     output: {
         path: __dirname + '/dist/',
         filename: 'SmashUploader.browser.js',
