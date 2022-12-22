@@ -32,5 +32,5 @@ interface CreateTransfer extends UpdateTransfer {
 }
 
 interface TransferFiles {
-    files: File[] | string[],
+    files: File[] | string[] | { name: string, file: File | string }[],
 }

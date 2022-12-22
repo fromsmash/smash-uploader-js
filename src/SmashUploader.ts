@@ -1,10 +1,9 @@
-import { UpdateTransferOutput } from '@smash-sdk/transfer/10-2019/types/UpdateTransfer/UpdateTransfer';
+import { UpdateTransferOutput } from '@smash-sdk/transfer/10-2019';
 import moment from 'moment';
 import { Context } from './core/Context';
 import { CustomEventEmitter } from './core/CustomEventEmitter';
 import { ConnectionAvailableEvent } from './events/ConnectionAvailableEvent';
 import { ConnectionBusyEvent } from './events/ConnectionBusyEvent';
-import { ConnectionProgressEvent } from './events/ConnectionProgressEvent';
 import { UploadProgressEvent } from './events/UploadProgressEvent';
 import { ConnectionEvents, UploaderEvents, UploaderStatus } from './globals/constant';
 import { UploaderError } from './helpers/errors';
@@ -432,7 +431,7 @@ export class SmashUploader extends CustomEventEmitter {
         return this;
     }
 
-    public upload(transferParameters: CreateTransferParameters): Promise<{ transfer: TransferOutput }> {
+    public upload(params: CreateTransferParameters): Promise<{ transfer: TransferOutput }> {
         return new Promise((resolve, reject) => {
             try {
                 // FIX ME check if upload already in progress => if yes throw error
@@ -440,10 +439,10 @@ export class SmashUploader extends CustomEventEmitter {
                     throw new UploaderError('Transfer already started');
                 }
                 this.transferPromise = { resolve, reject };
-                if (!transferParameters.files.length) {
+                if (!params.files.length) {
                     throw new UploaderError('You must add some files to create a Transfer');
                 }
-                this.context.createTransfer(transferParameters);
+                this.context.createTransfer(params);
                 this.emitStarting();
                 this.startProgressTimer();
                 this.startSpeedTimer();

@@ -33,9 +33,10 @@ export class FileItem {
     maxInlineParts!: number;
     //FIX ME Manage file state ? 'Started' 'Processing' 'Complete' ... ?
 
-    constructor(file: File | string) {
+    constructor(fileItem: File | string | { name: string, file: File | string }) {
+        const { name, file } = this.processFileAndName(fileItem);
         if (isNode() && typeof file === 'string') {
-            this.name = path.basename(file);
+            this.name = name;
             try {
                 const { size } = fs.statSync(file);
                 this.size = size;
@@ -44,11 +45,40 @@ export class FileItem {
             }
             this.originalFile = file;
         } else if (file instanceof File) {
-            this.name = file.name;
+            this.name = name;
             this.size = file.size;
             this.originalFile = file;
         } else {
             throw new Error('Unsuported file type');//FIX ME TODO create a real error here, improve this
+        }
+    }
+
+    private isComplexFile(file: unknown): file is { name: string, file: File | string } {
+        if (file && typeof file === 'object' && 'name' in file && 'file' in file) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    private processFileAndName(file: File | string | { name: string, file: File | string }): { name: string, file: File | string } {
+        if (this.isComplexFile(file)) {
+            if (isNode() && typeof file.file === 'string') {
+                return { name: file.name, file: file.file };
+            } else if (file.file instanceof File) {
+                return { name: file.name, file: file.file };
+            } else {
+                throw new Error('Unsuported file type');
+            }
+        } else {
+            if (isNode() && typeof file === 'string') {
+                const name = path.basename(file);
+                return { name, file };
+            } else if (file instanceof File) {
+                return { name: file.name, file };
+            } else {
+                throw new Error('Unsuported file type');
+            }
         }
     }
 

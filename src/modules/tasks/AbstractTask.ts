@@ -2,7 +2,6 @@ import { SDKError } from '@smash-sdk/core';
 import { Context } from '../../core/Context';
 import { ContextContainer } from '../../core/ContextContainer';
 import { TaskError } from '../../errors/TaskError';
-import { UploaderError } from '../../helpers/errors';
 
 export abstract class AbstractTask<T> extends ContextContainer {
     public executionNumber = 0;

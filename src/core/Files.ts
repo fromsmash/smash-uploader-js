@@ -3,7 +3,7 @@ export class Files {
     files = new Map<string, FileItem>();
     _size = 0;
 
-    constructor(files?: File[] | string[]) {
+    constructor(files?: File[] | string[] | { name: string, file: File | string }[]) {
         if (files) {
             //FIX ME do dynamic sanity check with joi
             for (const key in files) {
