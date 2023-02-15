@@ -20,10 +20,11 @@ export class FileItem {
     size: number;
     name: string;
     originalFile: File | string;
-    // parts: Parts = new Parts();
     partsToCreate: Parts = new Parts();
     partsToUpload: Parts = new Parts();
     partsToComplete: Parts = new Parts();
+    completingParts: Parts = new Parts();
+    inlinePartsToComplete: Parts = new Parts();
     partsCompleted: Parts = new Parts();
     region!: string;
     chunckSize!: number;
@@ -108,11 +109,6 @@ export class FileItem {
         });
     }
 
-    // public clearPartsToCreate(): FileItem {
-    //     this.partsToCreate = new Parts();
-    //     return this;
-    // }
-
     public populateCreatedParts(partsToCreate: Parts, { parts }: CreateTransferFilePartsOutput): Parts {
         const partsHydrated = new Parts();
         partsToCreate.forEach(part => {
@@ -136,18 +132,33 @@ export class FileItem {
     public populateUploadedPart(partToUpload: Part, { part }: UploadTransferFilePartOutput): Part { // UploadTransferFilePartOutput
         partToUpload.hydrateUploadedPart({ part });
         this.partsToUpload.remove(partToUpload.id);
-        this.partsToComplete.add(partToUpload);
+        if (this.canAddInlinePart()) {
+            this.inlinePartsToComplete.add(partToUpload);
+        } else {
+            this.partsToComplete.add(partToUpload);
+        }
         return partToUpload;
+    }
+
+    private getPartTocomplete(part: Part): Part {
+        if (this.inlinePartsToComplete.has(part.id)) {
+            const partToComplete = this.inlinePartsToComplete.get(part.id);
+            this.inlinePartsToComplete.remove(partToComplete.id);
+            return partToComplete;
+        } else {
+            const partToComplete = this.completingParts.get(part.id);
+            this.completingParts.remove(partToComplete.id);
+            return partToComplete;
+        }
     }
 
     public populateCompletedParts(partsToComplete: Parts, { parts }: UpdateTransferFilePartsOutput): Parts {
         partsToComplete.forEach(part => {
-            const partToComplete = this.partsToComplete.get(part.id);
+            const partToComplete = this.getPartTocomplete(part);
             const completedPart = parts.find(partTofind => partTofind.id === part.id);
             if (completedPart) {
                 partToComplete.hydrateCompletedPart(completedPart);
             }
-            this.partsToComplete.remove(partToComplete.id);
             this.partsCompleted.add(partToComplete);
         });
         return partsToComplete;
@@ -161,14 +172,6 @@ export class FileItem {
         this.partsCount = file.partsCount;
         this.uploadState = file.uploadState;
         this.maxInlineParts = file.maxInlineParts;
-        // if (file.parts) {
-        //     file.parts.forEach(part => {
-        //         const partToUpdate = this.parts.get(part.id);
-        //         this.partsToComplete.remove(partToUpdate.id);
-        //         this.partsCompleted.add(partToUpdate);
-        //         partToUpdate.populateUpdatedPart(part);
-        //     });
-        // }
         return this;
     }
 
@@ -191,34 +194,49 @@ export class FileItem {
         return UploadeMode.FastUpload;
     }
 
+    public canAddInlinePart(): boolean {
+        return this.inlinePartsToComplete.length < this.maxInlineParts;
+    }
+
     public hasEnoughPartsUploadedToCompleteFile(): boolean {
-        return this.partsToComplete.length === this.partsCount;
+        return this.partsToComplete.length + this.inlinePartsToComplete.length === this.partsCount;
     }
 
     public hasEnoughPartsToValidate(): boolean {
-        return this.partsToComplete.slice(this.maxInlineParts - 1).length >= this.maxInlineParts;
+        return this.partsToComplete.length >= this.maxInlineParts || (this.partsToComplete.length > 0 && this.partsCount - this.maxInlineParts - this.completingParts.length - this.partsCompleted.length === this.partsToComplete.length);
     }
 
     public getPartsToValidate(): Parts {
-        return this.partsToComplete.slice(this.maxInlineParts - 1);
-    }
-
-    public hasInlinePartsToValidate(): boolean {
-        return Boolean(this.partsToComplete.list().slice(0, this.maxInlineParts - 1).length);
-    }
-
-    public getInlinePartsToValidate(): Parts {
         return this.partsToComplete;
     }
 
+    public getNextPartsToValidate(): Parts {
+        const parts = this.partsToComplete.slice(0, this.maxInlineParts - 1);
+        parts.forEach(part => {
+            this.partsToComplete.remove(part.id);
+            this.completingParts.add(part);
+        });
+        return parts;
+    }
+
+    public hasInlinePartsToValidate(): boolean {
+        return Boolean(this.inlinePartsToComplete.list().length);
+    }
+
+    public getInlinePartsToValidate(): Parts {
+        return this.inlinePartsToComplete;
+    }
+
     public hasAllPartsUploaded(): boolean {
-        return this.partsCompleted.length === this.partsCount;
+        return this.partsCompleted.length + this.inlinePartsToComplete.length === this.partsCount;
     }
 
     public resetParts() {
         this.partsToCreate = new Parts();
         this.partsToUpload = new Parts();
         this.partsToComplete = new Parts();
+        this.inlinePartsToComplete = new Parts();
+        this.completingParts = new Parts();
         this.partsCompleted = new Parts();
         this.initializePartsToCreate();
     }

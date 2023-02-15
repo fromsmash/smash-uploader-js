@@ -1,4 +1,3 @@
-import moment from 'moment';
 import { Context, Queues } from '../core/Context';
 import { Task } from './tasks/Task';
 
@@ -41,7 +40,7 @@ export class Sequencer {
     }
 
     public evaluateNextTask(context: Context): Task | null {
-        if (!moment(context.transfer!.queuedUntil).isAfter(moment())) {//FIX ME queue should be handle here or not?
+        if (context.transfer!.queuedUntil === undefined || (new Date(context.transfer!.queuedUntil as string).getTime() < new Date().getTime())) {
             for (const evaluation of this.evaluationOrder) {
                 if (this.hasOne(evaluation, context) && this.evaluateCondition(evaluation, context)) {
                     const nextTask = this.shift(evaluation, context);

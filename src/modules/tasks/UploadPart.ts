@@ -85,7 +85,7 @@ export class UploadPart extends AbstractTask<Task> {
         return this;
     }
 
-    public process(): Promise<UploadPart> { //FIX ME change any type
+    public process(): Promise<UploadPart> {
         return new Promise(async resolve => {
             try {
                 const content = await this.getContent(this.file, this.part);
@@ -181,8 +181,10 @@ export class UploadPart extends AbstractTask<Task> {
                 context.updateFileQueue.add(new UpdateFile(this.context, this.file));
             }
         } else if (this.file.isStandardUploadMode() && this.file.hasEnoughPartsToValidate()) {
-            const parts = this.file.getPartsToValidate();
-            context.updatePartsQueue.add(new UpdateParts(this.context, this.file, parts));//FIX ME this queue doesn't exist because this should return the task....
+            const parts = this.file.getNextPartsToValidate();
+            const task = new UpdateParts(this.context, this.file, parts)
+            //context.updatePartsQueue.add(task);
+            return task;
         }
         return null;
     }
@@ -275,7 +277,8 @@ export class UploadPart extends AbstractTask<Task> {
     private getContentFromPath(originalFile: string, part: Part): Promise<string | Buffer> {
         return new Promise((resolve, reject) => {
             try {
-                const readStream = fs.createReadStream(originalFile, { start: part.startIndex, end: part.startIndex! + part.lengthToRead! - 1 }); // FIX ME "!"
+                const end = part.lengthToRead! > 0 ? part.startIndex! + part.lengthToRead! - 1 : 0;
+                const readStream = fs.createReadStream(originalFile, { start: part.startIndex, end }); // FIX ME "!"
                 let blob = Buffer.from("");
                 readStream.on('error', error => reject(error)); // FIX ME improve error management
                 readStream.on('data', (chunk) => {

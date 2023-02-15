@@ -25,8 +25,12 @@ export class Parts {
         return this.list().reduce((prev, curr) => prev + curr.uploadedBytes, 0);
     }
 
+    public has(id: number): boolean {
+        return this.parts.has(id);
+    }
+
     public get(id: number): Part {
-        if (this.parts.get(id)) {
+        if (this.has(id)) {
             return this.parts.get(id)!;
         }
         throw new Error(`Part ${id} does not exist`);
@@ -46,7 +50,7 @@ export class Parts {
         return parts;
     }
 
-    public slice(start = 0, end: number = this.length): Parts {
+    public slice(start = 0, end: number = this.length - 1): Parts {
         const parts = new Parts();
         this.list().slice(start, end).forEach(part => parts.add(part));
         return parts;

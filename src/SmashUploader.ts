@@ -1,5 +1,4 @@
 import { UpdateTransferOutput } from '@smash-sdk/transfer/10-2019';
-import moment from 'moment';
 import { Context } from './core/Context';
 import { CustomEventEmitter } from './core/CustomEventEmitter';
 import { ConnectionAvailableEvent } from './events/ConnectionAvailableEvent';
@@ -267,7 +266,7 @@ export class SmashUploader extends CustomEventEmitter {
     }
 
     private emitQueueIfNeeded() {
-        if (moment(this.context.transfer!.queuedUntil).isAfter(Date.now())) {
+        if (new Date(this.context.transfer!.queuedUntil as string).getTime() > new Date().getTime()) {
             this.emitQueue();
         }
     }
@@ -347,7 +346,7 @@ export class SmashUploader extends CustomEventEmitter {
 
     private pingConnectionsAroundQueue() {
         if (this.context?.transfer?.queuedUntil) {
-            const diff = moment(this.context.transfer.queuedUntil).diff(moment());
+            const diff = new Date(this.context.transfer.queuedUntil).getTime() - new Date().getTime();
             if (diff >= -60000 && diff <= 60000) {
                 this.pingConnections();
                 if (this.context.getStatus() !== UploaderStatus.Started) {
