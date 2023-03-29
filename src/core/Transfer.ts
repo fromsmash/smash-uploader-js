@@ -60,7 +60,7 @@ export class Transfer {
     public queue?: number;
     public queuedUntil?: string;
     public delivery?: {
-        type: string,
+        type: "Email" | "Link",
         sender?: {
             name?: string,
             email: string,
@@ -74,9 +74,9 @@ export class Transfer {
         id: string,
     };
 
-    public preview?: string;
-    public accessTracking?: string;
-    public notificationType?: string;
+    public preview?: "Full" | "None";
+    public accessTracking?: "Email" | "None";
+    public notificationType?: "None" | "All";
     public password?: string;
     public description?: string;
     public parallelFiles!: number;

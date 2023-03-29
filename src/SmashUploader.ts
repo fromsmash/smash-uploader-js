@@ -33,14 +33,12 @@ export class SmashUploader extends CustomEventEmitter {
         this.sequencer = new Sequencer();
         this.bindConnections();
         //FIX ME call a function reset() witch recreate everything
-        //this.reset(); FIX ME this is not working.... fuuu
-        //FIX ME extract from token the userId ??
+        //this.reset(); FIX ME this is not working....
     }
 
     private bindConnections(): SmashUploader {
         this.connections.on(ConnectionEvents.ConnectionAvailable, (event: ConnectionAvailableEvent) => this.handleConnectionAvailable(this, event));
         this.connections.on(ConnectionEvents.ConnectionBusy, this.handleConnectionBusy);
-        //this.connections.on(ConnectionEvents.ConnectionProgress, (event: ConnectionProgressEvent) => this.handleConnectionProgress(this, event));
         return this;
     }
 
@@ -77,7 +75,7 @@ export class SmashUploader extends CustomEventEmitter {
                 },
                 startingDate: this.context.startingDate,
             }
-        });//FIX ME is the string passed as second argument a must have? lol
+        });
     }
 
     private emitQueue() {
@@ -169,7 +167,6 @@ export class SmashUploader extends CustomEventEmitter {
     }
 
     private emitFinished() {
-        //here put in context the finished date
         this.resetTimers();
         this.emit(UploaderEvents.Finished, {
             name: UploaderEvents.Finished,
@@ -219,7 +216,6 @@ export class SmashUploader extends CustomEventEmitter {
         this.emit(UploaderEvents.Error, error as any);//FIX ME type is TaskError or Error type
         this.reset();
         this.transferPromise.reject(error as Error);
-        //reset here?
     }
 
     private emitCanceled() {
@@ -290,11 +286,10 @@ export class SmashUploader extends CustomEventEmitter {
             if (processedTask.isOnError()) {
                 this.handleConnectionError(processedTask);
             } else {
-                const nextTask = processedTask.postProcess(this.context); //REWORK THIS, where to store parameters ....????
+                const nextTask = processedTask.postProcess(this.context);
                 if (processedTask.isFirstTask()) {
                     this.emitQueueIfNeeded();
                     this.addConnections(this.context.transfer!.parallelConnections);
-                    //this.connections.updateConnectionNumber(this.context.transfer.parallelConnections);//REWORK number of parallel connections
                 } else if (processedTask.isLastTask()) {
                     this.emitFinished();
                 }
@@ -303,8 +298,7 @@ export class SmashUploader extends CustomEventEmitter {
                     if (nextTask.isLastTask()) {
                         this.emitFinished();
                     } else {
-                        //const { task, parameters } = taskParams;
-                        this.startTask(connection, nextTask);//REWORK THIS, where to store parameters ....????
+                        this.startTask(connection, nextTask);
                     }
                 } else {
                     this.pingConnections();

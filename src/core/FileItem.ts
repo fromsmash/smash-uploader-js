@@ -133,6 +133,7 @@ export class FileItem {
         partToUpload.hydrateUploadedPart({ part });
         this.partsToUpload.remove(partToUpload.id);
         if (this.canAddInlinePart()) {
+
             this.inlinePartsToComplete.add(partToUpload);
         } else {
             this.partsToComplete.add(partToUpload);

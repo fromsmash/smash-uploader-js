@@ -16,11 +16,11 @@ export class CreateParts extends AbstractTask<Task> {
     private createTransferFilePartsParameters!: CreateTransferFilePartsInput;
     private response!: CreateTransferFilePartsOutput;
     protected readonly sdkFatalErrors: (typeof SDKError)[] = [
-        this.context.transferSdk.errors.CreateTransferFilePartsError.Unauthorized,
-        this.context.transferSdk.errors.CreateTransferFilePartsError.BadRequest,
-        this.context.transferSdk.errors.CreateTransferFilePartsError.NotFound,
-        this.context.transferSdk.errors.CreateTransferFilePartsError.TransferAlreadyLocked,
-        this.context.transferSdk.errors.CreateTransferFilePartsError.FileAlreadyLocked,
+        this.context.transferSdk.errors.CreateTransferFilePartsError.UnauthorizedError,
+        this.context.transferSdk.errors.CreateTransferFilePartsError.InvalidParameterError,
+        this.context.transferSdk.errors.CreateTransferFilePartsError.NotFoundError,
+        this.context.transferSdk.errors.CreateTransferFilePartsError.TransferAlreadyLockedError,
+        this.context.transferSdk.errors.CreateTransferFilePartsError.FileAlreadyLockedError,
         this.context.transferSdk.errors.CreateTransferFilePartsError.UnknownError,
     ];
 
@@ -46,15 +46,15 @@ export class CreateParts extends AbstractTask<Task> {
                 this.response = await this.context.transferSdk.createTransferFileParts(this.createTransferFilePartsParameters);
             } catch (error) {
                 if (
-                    error instanceof this.context.transferSdk.errors.CreateTransferFilePartsError.Unauthorized ||
-                    error instanceof this.context.transferSdk.errors.CreateTransferFilePartsError.NotFound ||
-                    error instanceof this.context.transferSdk.errors.CreateTransferFilePartsError.BadRequest ||
-                    error instanceof this.context.transferSdk.errors.CreateTransferFilePartsError.TransferAlreadyLocked ||
-                    error instanceof this.context.transferSdk.errors.CreateTransferFilePartsError.FileAlreadyLocked ||
+                    error instanceof this.context.transferSdk.errors.CreateTransferFilePartsError.UnauthorizedError ||
+                    error instanceof this.context.transferSdk.errors.CreateTransferFilePartsError.NotFoundError ||
+                    error instanceof this.context.transferSdk.errors.CreateTransferFilePartsError.InvalidParameterError ||
+                    error instanceof this.context.transferSdk.errors.CreateTransferFilePartsError.TransferAlreadyLockedError ||
+                    error instanceof this.context.transferSdk.errors.CreateTransferFilePartsError.FileAlreadyLockedError ||
                     error instanceof this.context.transferSdk.errors.CreateTransferFilePartsError.UnknownError ||
                     error instanceof this.context.transferSdk.errors.CreateTransferFilePartsError.InternalServerError ||
-                    error instanceof this.context.transferSdk.errors.CreateTransferFilePartsError.GatewayTimeout ||
-                    error instanceof this.context.transferSdk.errors.CreateTransferFilePartsError.BadGateway ||
+                    error instanceof this.context.transferSdk.errors.CreateTransferFilePartsError.GatewayTimeoutError ||
+                    error instanceof this.context.transferSdk.errors.CreateTransferFilePartsError.BadGatewayError ||
                     error instanceof this.context.transferSdk.errors.CreateTransferFilePartsError.NetworkError
                 ) {
                     this.error = new TaskError(this, error);

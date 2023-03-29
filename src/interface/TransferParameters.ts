@@ -19,9 +19,9 @@ interface UpdateTransfer {
     promotion?: {
         id: string;
     };
-    preview?: string;
-    accessTracking?: string;
-    notificationType?: string;
+    preview?: "Full" | "None" ;
+    accessTracking?: "Email" | "None" ;
+    notificationType?: "None" | "All" ;
     password?: string;
     description?: string;
 }

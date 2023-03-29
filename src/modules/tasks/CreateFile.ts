@@ -17,11 +17,11 @@ export class CreateFile extends AbstractTask<Task> {
     private createTransferFileParameters: CreateTransferFileInput;
     private response!: CreateTransferFileOutput | GetTransferFileOutput | GetTeamTransferFileOutput;
     protected readonly sdkFatalErrors: (typeof SDKError)[] = [
-        this.context.transferSdk.errors.CreateTransferFileError.Unauthorized,
-        this.context.transferSdk.errors.CreateTransferFileError.BadRequest,
-        this.context.transferSdk.errors.CreateTransferFileError.NotFound,
-        this.context.transferSdk.errors.CreateTransferFileError.TransferAlreadyLocked,
-        this.context.transferSdk.errors.CreateTransferFileError.TransferIsInQueue,
+        this.context.transferSdk.errors.CreateTransferFileError.UnauthorizedError,
+        this.context.transferSdk.errors.CreateTransferFileError.InvalidParameterError,
+        this.context.transferSdk.errors.CreateTransferFileError.NotFoundError,
+        this.context.transferSdk.errors.CreateTransferFileError.TransferAlreadyLockedError,
+        this.context.transferSdk.errors.CreateTransferFileError.TransferIsInQueueError,
         this.context.transferSdk.errors.CreateTransferFileError.UnknownError,
     ];
 
@@ -46,7 +46,7 @@ export class CreateFile extends AbstractTask<Task> {
                 const file = await this.context.transferSdk.createTransferFile(this.createTransferFileParameters);
                 resolve(file);
             } catch (error: unknown) {
-                if (error instanceof this.context.transferSdk.errors.CreateTransferFileError.Conflict) {
+                if (error instanceof this.context.transferSdk.errors.CreateTransferFileError.ConflictError) {
                     if (this.transfer.teamId) {
                         const file = await this.context.transferSdk.getTeamTransferFile({ transferId: this.transfer.id, fileId: this.file.id, teamId: this.transfer.teamId });
                         resolve(file);
@@ -67,15 +67,15 @@ export class CreateFile extends AbstractTask<Task> {
                 this.response = await this.createTransferFile();
             } catch (error) {
                 // TODO CORS Error (only browser)
-                if (error instanceof this.context.transferSdk.errors.CreateTransferFileError.Unauthorized ||
-                    error instanceof this.context.transferSdk.errors.CreateTransferFileError.TransferAlreadyLocked ||
-                    error instanceof this.context.transferSdk.errors.CreateTransferFileError.BadRequest ||
-                    error instanceof this.context.transferSdk.errors.CreateTransferFileError.NotFound ||
-                    error instanceof this.context.transferSdk.errors.CreateTransferFileError.TransferIsInQueue ||
+                if (error instanceof this.context.transferSdk.errors.CreateTransferFileError.UnauthorizedError ||
+                    error instanceof this.context.transferSdk.errors.CreateTransferFileError.TransferAlreadyLockedError ||
+                    error instanceof this.context.transferSdk.errors.CreateTransferFileError.InvalidParameterError ||
+                    error instanceof this.context.transferSdk.errors.CreateTransferFileError.NotFoundError ||
+                    error instanceof this.context.transferSdk.errors.CreateTransferFileError.TransferIsInQueueError ||
                     error instanceof this.context.transferSdk.errors.CreateTransferFileError.UnknownError ||
                     error instanceof this.context.transferSdk.errors.CreateTransferFileError.InternalServerError ||
-                    error instanceof this.context.transferSdk.errors.CreateTransferFileError.BadGateway ||
-                    error instanceof this.context.transferSdk.errors.CreateTransferFileError.GatewayTimeout ||
+                    error instanceof this.context.transferSdk.errors.CreateTransferFileError.BadGatewayError ||
+                    error instanceof this.context.transferSdk.errors.CreateTransferFileError.GatewayTimeoutError ||
                     error instanceof this.context.transferSdk.errors.CreateTransferFileError.NetworkError
                 ) {
                     this.error = new TaskError(this, error);

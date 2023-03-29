@@ -15,14 +15,14 @@ export class CreateTransfer extends AbstractTask<Task> {
     private response!: CreateTransferOutput | CreateTeamTransferOutput;
 
     protected readonly sdkFatalErrors: typeof SDKError[] = [
-        this.context.transferSdk.errors.CreateTransferError.Unauthorized,
-        this.context.transferSdk.errors.CreateTeamTransferError.Unauthorized,
-        this.context.transferSdk.errors.CreateTransferError.BadRequest,
-        this.context.transferSdk.errors.CreateTeamTransferError.BadRequest,
-        this.context.transferSdk.errors.CreateTransferError.Forbidden,
-        this.context.transferSdk.errors.CreateTeamTransferError.Forbidden,
-        this.context.transferSdk.errors.CreateTransferError.CustomUrlAlreadyInUse,
-        this.context.transferSdk.errors.CreateTeamTransferError.CustomUrlAlreadyInUse,
+        this.context.transferSdk.errors.CreateTransferError.UnauthorizedError,
+        this.context.transferSdk.errors.CreateTeamTransferError.UnauthorizedError,
+        this.context.transferSdk.errors.CreateTransferError.InvalidParameterError,
+        this.context.transferSdk.errors.CreateTeamTransferError.InvalidParameterError,
+        this.context.transferSdk.errors.CreateTransferError.ForbiddenError,
+        this.context.transferSdk.errors.CreateTeamTransferError.ForbiddenError,
+        this.context.transferSdk.errors.CreateTransferError.CustomUrlAlreadyInUseError,
+        this.context.transferSdk.errors.CreateTeamTransferError.CustomUrlAlreadyInUseError,
         this.context.transferSdk.errors.CreateTransferError.UnknownError,
         this.context.transferSdk.errors.CreateTeamTransferError.UnknownError,
     ];
@@ -87,20 +87,20 @@ export class CreateTransfer extends AbstractTask<Task> {
                     this.response = await this.context.transferSdk.createTransfer(this.createTransferParameters);
                 }
             } catch (error) {
-                if (error instanceof this.context.transferSdk.errors.CreateTeamTransferError.Unauthorized ||
-                    error instanceof this.context.transferSdk.errors.CreateTeamTransferError.Forbidden ||
-                    error instanceof this.context.transferSdk.errors.CreateTeamTransferError.BadRequest ||
-                    error instanceof this.context.transferSdk.errors.CreateTeamTransferError.CustomUrlAlreadyInUse ||
-                    error instanceof this.context.transferSdk.errors.CreateTransferError.Unauthorized ||
-                    error instanceof this.context.transferSdk.errors.CreateTransferError.Forbidden ||
-                    error instanceof this.context.transferSdk.errors.CreateTransferError.BadRequest ||
-                    error instanceof this.context.transferSdk.errors.CreateTransferError.CustomUrlAlreadyInUse ||
+                if (error instanceof this.context.transferSdk.errors.CreateTeamTransferError.UnauthorizedError ||
+                    error instanceof this.context.transferSdk.errors.CreateTeamTransferError.ForbiddenError ||
+                    error instanceof this.context.transferSdk.errors.CreateTeamTransferError.InvalidParameterError ||
+                    error instanceof this.context.transferSdk.errors.CreateTeamTransferError.CustomUrlAlreadyInUseError ||
+                    error instanceof this.context.transferSdk.errors.CreateTransferError.UnauthorizedError ||
+                    error instanceof this.context.transferSdk.errors.CreateTransferError.ForbiddenError ||
+                    error instanceof this.context.transferSdk.errors.CreateTransferError.InvalidParameterError ||
+                    error instanceof this.context.transferSdk.errors.CreateTransferError.CustomUrlAlreadyInUseError ||
                     error instanceof this.context.transferSdk.errors.CreateTeamTransferError.InternalServerError ||
                     error instanceof this.context.transferSdk.errors.CreateTransferError.InternalServerError ||
-                    error instanceof this.context.transferSdk.errors.CreateTeamTransferError.GatewayTimeout ||
-                    error instanceof this.context.transferSdk.errors.CreateTransferError.GatewayTimeout ||
-                    error instanceof this.context.transferSdk.errors.CreateTeamTransferError.BadGateway ||
-                    error instanceof this.context.transferSdk.errors.CreateTransferError.BadGateway ||
+                    error instanceof this.context.transferSdk.errors.CreateTeamTransferError.GatewayTimeoutError ||
+                    error instanceof this.context.transferSdk.errors.CreateTransferError.GatewayTimeoutError ||
+                    error instanceof this.context.transferSdk.errors.CreateTeamTransferError.BadGatewayError ||
+                    error instanceof this.context.transferSdk.errors.CreateTransferError.BadGatewayError ||
                     error instanceof this.context.transferSdk.errors.CreateTeamTransferError.UnknownError ||
                     error instanceof this.context.transferSdk.errors.CreateTransferError.UnknownError ||
                     error instanceof this.context.transferSdk.errors.CreateTransferError.NetworkError

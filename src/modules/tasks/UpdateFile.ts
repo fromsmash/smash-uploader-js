@@ -16,10 +16,10 @@ export class UpdateFile extends AbstractTask<Task> {
     private response!: UpdateTransferFileOutput;
 
     protected readonly sdkFatalErrors: typeof SDKError[] = [
-        this.context.transferSdk.errors.UpdateTransferError.BadRequest,
-        this.context.transferSdk.errors.UpdateTransferError.NotFound,
-        this.context.transferSdk.errors.UpdateTransferError.TransferAlreadyLocked,
-        this.context.transferSdk.errors.UpdateTransferError.Unauthorized,
+        this.context.transferSdk.errors.UpdateTransferError.InvalidParameterError,
+        this.context.transferSdk.errors.UpdateTransferError.NotFoundError,
+        this.context.transferSdk.errors.UpdateTransferError.TransferAlreadyLockedError,
+        this.context.transferSdk.errors.UpdateTransferError.UnauthorizedError,
         this.context.transferSdk.errors.UpdateTransferError.UnknownError,
     ];
 
@@ -47,14 +47,14 @@ export class UpdateFile extends AbstractTask<Task> {
                 this.response = await this.context.transferSdk.updateTransferFile(this.updateTransferFileParameters);
             } catch (error: unknown) {
                 if (
-                    error instanceof this.context.transferSdk.errors.UpdateTransferError.BadRequest ||
-                    error instanceof this.context.transferSdk.errors.UpdateTransferError.NotFound ||
-                    error instanceof this.context.transferSdk.errors.UpdateTransferError.TransferAlreadyLocked ||
-                    error instanceof this.context.transferSdk.errors.UpdateTransferError.Unauthorized ||
+                    error instanceof this.context.transferSdk.errors.UpdateTransferError.InvalidParameterError ||
+                    error instanceof this.context.transferSdk.errors.UpdateTransferError.NotFoundError ||
+                    error instanceof this.context.transferSdk.errors.UpdateTransferError.TransferAlreadyLockedError ||
+                    error instanceof this.context.transferSdk.errors.UpdateTransferError.UnauthorizedError ||
                     error instanceof this.context.transferSdk.errors.UpdateTransferError.UnknownError ||
                     error instanceof this.context.transferSdk.errors.UpdateTransferError.InternalServerError ||
-                    error instanceof this.context.transferSdk.errors.UpdateTransferError.BadGateway ||
-                    error instanceof this.context.transferSdk.errors.UpdateTransferError.GatewayTimeout ||
+                    error instanceof this.context.transferSdk.errors.UpdateTransferError.BadGatewayError ||
+                    error instanceof this.context.transferSdk.errors.UpdateTransferError.GatewayTimeoutError ||
                     error instanceof this.context.transferSdk.errors.UpdateTransferError.NetworkError
                 ) {
                     this.error = new TaskError(this, error);

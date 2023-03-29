@@ -14,11 +14,11 @@ export class LockTransfer extends AbstractTask<Task> {
     private response!: LockTransferOutput | GetTransferOutput;
 
     protected readonly sdkFatalErrors: typeof SDKError[] = [
-        this.context.transferSdk.errors.LockTransferError.NotFound,
-        this.context.transferSdk.errors.LockTransferError.Unauthorized,
-        this.context.transferSdk.errors.LockTransferError.BadRequest,
-        this.context.transferSdk.errors.LockTransferError.TransferAlreadyLocked,
-        this.context.transferSdk.errors.LockTransferError.TransferIsDirty,
+        this.context.transferSdk.errors.LockTransferError.NotFoundError,
+        this.context.transferSdk.errors.LockTransferError.UnauthorizedError,
+        this.context.transferSdk.errors.LockTransferError.InvalidParameterError,
+        this.context.transferSdk.errors.LockTransferError.TransferAlreadyLockedError,
+        this.context.transferSdk.errors.LockTransferError.TransferIsDirtyError,
         this.context.transferSdk.errors.LockTransferError.UnknownError,
     ];
 
@@ -44,7 +44,7 @@ export class LockTransfer extends AbstractTask<Task> {
                 const transfer = await this.context.transferSdk.lockTransfer(this.lockTransferParameters);
                 resolve(transfer);
             } catch (error: unknown) {
-                if (error instanceof this.context.transferSdk.errors.LockTransferError.TransferAlreadyLocked) {
+                if (error instanceof this.context.transferSdk.errors.LockTransferError.TransferAlreadyLockedError) {
                     if (this.transfer.teamId) {
                         const transfer = await this.context.transferSdk.getTeamTransfer({ transferId: this.transfer.id, teamId: this.transfer.teamId });
                         resolve(transfer);
@@ -65,15 +65,15 @@ export class LockTransfer extends AbstractTask<Task> {
                 this.response = await this.lockTransfer();
             } catch (error: unknown) {
                 if (
-                    error instanceof this.context.transferSdk.errors.LockTransferError.TransferAlreadyLocked ||
-                    error instanceof this.context.transferSdk.errors.LockTransferError.NotFound ||
-                    error instanceof this.context.transferSdk.errors.LockTransferError.TransferIsDirty ||
-                    error instanceof this.context.transferSdk.errors.LockTransferError.Unauthorized ||
-                    error instanceof this.context.transferSdk.errors.LockTransferError.BadRequest ||
+                    error instanceof this.context.transferSdk.errors.LockTransferError.TransferAlreadyLockedError ||
+                    error instanceof this.context.transferSdk.errors.LockTransferError.NotFoundError ||
+                    error instanceof this.context.transferSdk.errors.LockTransferError.TransferIsDirtyError ||
+                    error instanceof this.context.transferSdk.errors.LockTransferError.UnauthorizedError ||
+                    error instanceof this.context.transferSdk.errors.LockTransferError.InvalidParameterError ||
                     error instanceof this.context.transferSdk.errors.LockTransferError.UnknownError ||
                     error instanceof this.context.transferSdk.errors.LockTransferError.InternalServerError ||
-                    error instanceof this.context.transferSdk.errors.LockTransferError.BadGateway ||
-                    error instanceof this.context.transferSdk.errors.LockTransferError.GatewayTimeout ||
+                    error instanceof this.context.transferSdk.errors.LockTransferError.BadGatewayError ||
+                    error instanceof this.context.transferSdk.errors.LockTransferError.GatewayTimeoutError ||
                     error instanceof this.context.transferSdk.errors.LockTransferError.NetworkError
                 ) {
                     this.error = new TaskError(this, error);
