@@ -133,7 +133,6 @@ export class FileItem {
         partToUpload.hydrateUploadedPart({ part });
         this.partsToUpload.remove(partToUpload.id);
         if (this.canAddInlinePart()) {
-
             this.inlinePartsToComplete.add(partToUpload);
         } else {
             this.partsToComplete.add(partToUpload);
@@ -141,7 +140,7 @@ export class FileItem {
         return partToUpload;
     }
 
-    private getPartTocomplete(part: Part): Part {
+    private getPartToComplete(part: Part): Part {
         if (this.inlinePartsToComplete.has(part.id)) {
             const partToComplete = this.inlinePartsToComplete.get(part.id);
             this.inlinePartsToComplete.remove(partToComplete.id);
@@ -155,7 +154,7 @@ export class FileItem {
 
     public populateCompletedParts(partsToComplete: Parts, { parts }: UpdateTransferFilePartsOutput): Parts {
         partsToComplete.forEach(part => {
-            const partToComplete = this.getPartTocomplete(part);
+            const partToComplete = this.getPartToComplete(part);
             const completedPart = parts.find(partTofind => partTofind.id === part.id);
             if (completedPart) {
                 partToComplete.hydrateCompletedPart(completedPart);

@@ -47,6 +47,7 @@ export class Files {
     public remove(name: string): FileItem {
         const file = this.get(name);
         this.files.delete(name)!;
+        this._size -= file.size;
         return file;
     }
 

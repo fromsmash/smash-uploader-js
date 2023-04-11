@@ -213,7 +213,7 @@ export class SmashUploader extends CustomEventEmitter {
     }
 
     private emitError(error: unknown) {
-        this.emit(UploaderEvents.Error, error as any);//FIX ME type is TaskError or Error type
+        this.emit(UploaderEvents.Error, error as any); //FIX ME type is TaskError or Error type
         this.reset();
         this.transferPromise.reject(error as Error);
     }
@@ -358,7 +358,7 @@ export class SmashUploader extends CustomEventEmitter {
     }
 
     private computeSpeed() {
-        this.context.speed = this.context.uploadedBytes; - this.context.lastValueUploadedBytes;
+        this.context.speed = this.context.uploadedBytes - this.context.lastValueUploadedBytes;
         this.context.lastValueUploadedBytes = this.context.uploadedBytes;
     }
 

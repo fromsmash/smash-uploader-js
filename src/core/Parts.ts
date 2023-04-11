@@ -39,6 +39,9 @@ export class Parts {
     public remove(id: number): Part {
         const part = this.get(id);
         this.parts.delete(id);
+        if (part.lengthToRead) {
+            this._size -= part.lengthToRead;
+        }
         return part;
     }
 

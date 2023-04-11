@@ -1,6 +1,6 @@
 {
   "name": "@smash-sdk/uploader",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "Smash uploader package",
   "main": "./dist/SmashUploader.js",
   "browser": "./dist/SmashUploader.browser.js",

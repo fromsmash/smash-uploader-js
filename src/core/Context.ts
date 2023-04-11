@@ -182,7 +182,7 @@ export class Context {
     public get uploadedBytes(): number {
         if (this.transfer) {
             const a = this.transfer.filesCompleted.size;
-            const b = this.transfer.filesProcessing.list().reduce((prev, curr) => prev + curr.partsToUpload.sizeUploaded + curr.partsToComplete.size + curr.partsCompleted.size, 0);
+            const b = this.transfer.filesProcessing.list().reduce((prev, curr) => prev + curr.partsToUpload.sizeUploaded + curr.inlinePartsToComplete.size + curr.partsToComplete.size + curr.completingParts.size + curr.partsCompleted.size, 0);
             return a + b;
         }
         return 0;
