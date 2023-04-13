@@ -3,7 +3,7 @@
 ![version](https://img.shields.io/badge/version-0.0.8-green)
 ![license](https://img.shields.io/badge/license-MIT-blue)
 
-SmashUploaderJS is a simple and easy-to-use JavaScript library for uploading files using the [Smash](https:/api.fromsmash.com/) file transfer service. With SmashUploaderJS, you can integrate Smash's file upload functionality directly into your web applications.
+SmashUploaderJS is a simple and easy-to-use JavaScript library for uploading files using the [Smash](https://api.fromsmash.com/) file transfer service. With SmashUploaderJS, you can integrate Smash's file upload functionality directly into your web applications.
 
 ## Table of Contents
 
