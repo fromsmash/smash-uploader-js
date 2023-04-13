@@ -1,9 +1,11 @@
-# SmashUploaderJS
+# SmashUploaderJS - Upload big file API
 
 ![version](https://img.shields.io/badge/version-0.0.8-green)
 ![license](https://img.shields.io/badge/license-MIT-blue)
 
-SmashUploaderJS is a simple and easy-to-use JavaScript library for uploading files using the [Smash API file transfer](https://api.fromsmash.com/) service. With SmashUploaderJS, you can integrate Smash's file upload functionality directly into your websites, mobile apps, SaaS solutions and custom workflows. The Application Programming Interface from Smash allows you to upload and share up to 5TB file size. Come up for a 100 GB, 14-day free trial, no credit card required.
+
+SmashUploaderJS is a simple and easy-to-use JavaScript library for uploading files using the [Smash API file transfer](https://api.fromsmash.com/) service. With SmashUploaderJS, you can integrate Smash’s file upload functionality directly into your websites, mobile apps, SaaS solutions and custom workflows.
+The Application Programming Interface from Smash allows you to upload and share up to 5TB file size. Come up for a 14 days free trial API key with up to 100GB.
 
 
 ## Table of Contents
