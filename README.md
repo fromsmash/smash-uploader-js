@@ -1,11 +1,22 @@
-# SmashUploaderJS - Upload big file API
+<p align="center">
+  <a href="https://api.fromsmash.com/"><img src="https://developer.fromsmash.com/LOGO_SMASH_API.png" align="center" width="135" /></a> 
+  <h1 align="center">SmashUploaderJS - Upload library <br>powered by the Smash API & SDK</h1> 
+</p>
+<p align="center">
+  <strong>Official JavaScript library to upload & share large files and folders (Node.js, browsers) using the Smash API & SDK 🚀</strong>
+</p>
+<br/>
+<p align="center">
+  <a href="https://npmjs.com/package/@smash-sdk/uploader"><img src="https://img.shields.io/npm/v/@smash-sdk/uploader.svg" /></a>
+  <a href="https://unpkg.com/@smash-sdk/uploader@0.0.9/dist/SmashUploader.browser.js"><img src="https://img.badgesize.io/https://unpkg.com/@smash-sdk/uploader@0.0.9/dist/SmashUploader.browser.js?compression=gzip&color=green" /></a>
+  <a href="https://unpkg.com/@smash-sdk/uploader@0.0.9/dist/SmashUploader.browser.js"><img src="https://img.badgesize.io/https://unpkg.com/@smash-sdk/uploader@0.0.9/dist/SmashUploader.browser.js?color=green" /></a>
+  <br/>
+  <img src="https://badges.herokuapp.com/browsers?labels=none&googlechrome=latest&firefox=latest&microsoftedge=latest&edge=latest&safari=latest&iphone=latest" />
+</p>
+<hr/>
 
-![version](https://img.shields.io/badge/version-0.0.8-green)
-![license](https://img.shields.io/badge/license-MIT-blue)
-
-
-SmashUploaderJS is a simple and easy-to-use JavaScript library for uploading files using the [Smash API file transfer](https://api.fromsmash.com/) service. With SmashUploaderJS, you can integrate Smash’s file upload functionality directly into your websites, mobile apps, SaaS solutions and custom workflows.
-The Application Programming Interface from Smash allows you to upload and share up to 5TB file size. Come up for a 14 days free trial API key with up to 100GB.
+SmashUploaderJS is a <b>simple and easy-to-use</b> JavaScript library for uploading files via the [Smash API & SDK](https://api.fromsmash.com/). With SmashUploaderJS, you can integrate Smash’s file upload functionality directly into your <b>websites, mobile apps, SaaS solutions and custom workflows</b>.
+The Smash API & SDK allows you to <b>upload and share up to 5TB file size</b>. Come up for a 14 days free trial API key with up to <b>100GB</b>.
 
 
 ## Table of Contents
