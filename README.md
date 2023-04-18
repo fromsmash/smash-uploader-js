@@ -94,7 +94,7 @@ const files = [
     "./dummyFiles/dummy3.txt",
 ];
 
-uploader.upload({ files, options }, {
+uploader.upload({ files }, {
   .then(({ transfer }) => { console.log("Transfer", transfer.transferUrl); })
   .catch(error => { console.log("Error", error); });
 });
@@ -106,44 +106,37 @@ uploader.upload({ files, options }, {
 const fileInput = document.querySelector('input[type="file"]');
 const files = [...fileInput.files[0]];
 
-uploader.upload({ files: [...fileInput.files], options })
+uploader.upload({ files: [...fileInput.files] })
   .then(({ transfer }) => { console.log("Transfer", transfer.transferUrl); })
   .catch(error => { console.log("Error", error); });
 ```
-Parameters
+`upload(params: CreateTransferParameters): Promise<UploadOutput>` 
 
-  - `files` (required): An array of files to upload.
-    - In a Node.js environment, `files` has to be an array of string representing the path location of the files.
-    - In browser, `files` has to be an array of File.
-  - `options` (optional): An object containing additional options for the transfer. This can include properties such as the transfer's title, description, access password, and delivery settings.
-  <br>
-  <br>
-  The options object can have the following optional properties:
+ CreateTransferParameters
 
-    - `title` (optional): A string containing the title of the transfer.
-    - `description` (optional): A string containing a description of the transfer.
-    - `teamId` (optional): A string containing the ID of the team to share the transfer with.
-    - `customUrl` (optional): A string containing a custom URL for the transfer.
-    - `language` (optional): A string indicating the language to use for the transfer.
-    - `availabilityDuration` (optional): A number indicating the number of days the transfer should be available.
-    - `preview` (optional): A string indicating whether to include a preview of the files in the transfer. Valid values are <b>"Full"</b> and <b>"None"</b>.
-    - `password` (optional): A string containing the password for accessing the transfer.
-    - `delivery` (optional): An object containing options for delivering the transfer, including:
-        type (required): A string indicating the delivery method to use. Valid values are <b>"Email"</b> and <b>"Link"</b>.
-        - `sender` (optional): An object containing information about the sender, including:
-            - `name` (optional): A string containing the name of the sender.
-            - `email` (required): A string containing the email address of the sender. <b>Only for "Email" delivery type.</b>
-        - `receivers` (optional): An array of strings containing the email addresses of the recipients.
-    - `customization` (optional): An object containing customization options for the transfer, including:
-        - `logo` (optional): A string containing the URL of the logo to use for the transfer.
-        - `background` (optional): A string containing the URL of the background image to use for the transfer.
-    - `promotion` (optional): An object containing the ID of the promotion to apply to the transfer.
-    - `accessTracking` (optional): A string indicating whether to track access to the transfer. Valid values are <b>"Email"</b> and <b>"None"</b>.
-    - `notificationType` (optional): A string indicating the type of notification to send. Valid values are <b>"None"</b> and <b>"All"</b>.
+  - `files` (required): An array of files to upload. In a Node.js environment, `files` has to be an array of string representing the path location of the files. In browser, `files` has to be an array of File.
+  - `title` (optional): A string containing the title of the transfer.
+  - `description` (optional): A string containing a description of the transfer.
+  - `teamId` (optional): A string containing the ID of the team to share the transfer with.
+  - `customUrl` (optional): A string containing a custom URL for the transfer.
+  - `language` (optional): A string indicating the language to use for the transfer.
+  - `availabilityDuration` (optional): A number indicating the number of days the transfer should be available.
+  - `preview` (optional): A string indicating whether to include a preview of the files in the transfer. Valid values are <b>"Full"</b> and <b>"None"</b>.
+  - `password` (optional): A string containing the password for accessing the transfer.
+  - `delivery` (optional): An object containing options for delivering the transfer, including:
+      - `type` (required): A string indicating the delivery method to use. Valid values are <b>"Email"</b> and <b>"Link"</b>.
+      - `sender` (optional): An object containing information about the sender, including:
+          - `name` (optional): A string containing the name of the sender.
+          - `email` (required): A string containing the email address of the sender. <b>Only for "Email" delivery type.</b>
+      - `receivers` (optional): An array of strings containing the email addresses of the recipients.
+  - `customization` (optional): An object containing customization options for the transfer, including:
+      - `logo` (optional): A string containing the URL of the logo to use for the transfer.
+      - `background` (optional): A string containing the URL of the background image to use for the transfer.
+  - `promotion` (optional): An object containing the ID of the promotion to apply to the transfer.
+  - `accessTracking` (optional): A string indicating whether to track access to the transfer. Valid values are <b>"Email"</b> and <b>"None"</b>.
+  - `notificationType` (optional): A string indicating the type of notification to send. Valid values are <b>"None"</b> and <b>"All"</b>.
 
-Output
-
-The upload() promise returns an object with the following properties :
+UploadOutput
 
 - `transfer`
   - `id`: A string containing the ID of the uploaded transfer.
