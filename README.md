@@ -127,8 +127,8 @@ uploader.upload({ files: [...fileInput.files] })
       - `type` (required): A string indicating the delivery method to use. Valid values are <b>"Email"</b> and <b>"Link"</b>.
       - `sender` (optional): An object containing information about the sender, including:
           - `name` (optional): A string containing the name of the sender.
-          - `email` (required): A string containing the email address of the sender. <b>Only for "Email" delivery type.</b>
-      - `receivers` (optional): An array of strings containing the email addresses of the recipients.
+          - `email` (required): A string containing the email address of the sender.
+      - `receivers` (optional): An array of strings containing the email addresses of the recipients. <b>Only for "Email" delivery type.</b>
   - `customization` (optional): An object containing customization options for the transfer, including:
       - `logo` (optional): A string containing the URL of the logo to use for the transfer.
       - `background` (optional): A string containing the URL of the background image to use for the transfer.
