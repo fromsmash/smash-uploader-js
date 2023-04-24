@@ -6,8 +6,8 @@ import { ConnectionBusyEvent } from './events/ConnectionBusyEvent';
 import { UploadProgressEvent } from './events/UploadProgressEvent';
 import { ConnectionEvents, UploaderEvents, UploaderStatus } from './globals/constant';
 import { UploaderError } from './helpers/errors';
-import { TransferOutput } from './interface/TransferOutput';
-import { CreateTransferParameters, UpdateTransferParameters } from './interface/TransferParameters';
+import { UploadOutput } from './interface/UploadOutput';
+import { UploadInput, UpdateTransferInput } from './interface/TransferParameters';
 import { UploaderParameters } from './interface/UploaderParameters';
 import { Connection } from './modules/handlers/Connection';
 import { Connections } from './modules/handlers/Connections';
@@ -21,7 +21,7 @@ export class SmashUploader extends CustomEventEmitter {
     private connections: Connections;
     private sequencer: Sequencer;
     private context: Context;
-    private transferPromise!: { resolve: (value: { transfer: TransferOutput }) => void, reject: (error: Error) => void };
+    private transferPromise!: { resolve: (value: UploadOutput) => void, reject: (error: Error) => void };
     private progressTimer?: NodeJS.Timer;
     private speedTimer?: NodeJS.Timer;
     private queueTimer?: NodeJS.Timer;
@@ -60,7 +60,6 @@ export class SmashUploader extends CustomEventEmitter {
                 transfer: {
                     id: this.context.transfer!.id,
                     status: this.context.transfer!.status,
-                    uploadStatus: this.context.transfer!.uploadState,
                     region: this.context.transfer!.region,
                     transferUrl: this.context.transfer!.transferUrl,
                     uploadState: this.context.transfer!.uploadState,
@@ -85,7 +84,6 @@ export class SmashUploader extends CustomEventEmitter {
                 transfer: {
                     id: this.context.transfer!.id,
                     status: this.context.transfer!.status,
-                    uploadStatus: this.context.transfer!.uploadState,
                     region: this.context.transfer!.region,
                     transferUrl: this.context.transfer!.transferUrl,
                     uploadState: this.context.transfer!.uploadState,
@@ -110,7 +108,6 @@ export class SmashUploader extends CustomEventEmitter {
                 transfer: {
                     id: this.context.transfer!.id,
                     status: this.context.transfer!.status,
-                    uploadStatus: this.context.transfer!.uploadState,
                     region: this.context.transfer!.region,
                     transferUrl: this.context.transfer!.transferUrl,
                     uploadState: this.context.transfer!.uploadState,
@@ -148,7 +145,6 @@ export class SmashUploader extends CustomEventEmitter {
                     transfer: {
                         id: this.context.transfer!.id,
                         status: this.context.transfer!.status,
-                        uploadStatus: this.context.transfer!.uploadState,
                         region: this.context.transfer!.region,
                         transferUrl: this.context.transfer!.transferUrl,
                         uploadState: this.context.transfer!.uploadState,
@@ -174,7 +170,6 @@ export class SmashUploader extends CustomEventEmitter {
                 transfer: {
                     id: this.context.transfer!.id,
                     status: this.context.transfer!.status,
-                    uploadStatus: this.context.transfer!.uploadState,
                     region: this.context.transfer!.region,
                     transferUrl: this.context.transfer!.transferUrl,
                     uploadState: this.context.transfer!.uploadState,
@@ -196,7 +191,6 @@ export class SmashUploader extends CustomEventEmitter {
             transfer: {
                 id: this.context.transfer!.id,
                 status: this.context.transfer!.status,
-                uploadStatus: this.context.transfer!.uploadState as string,
                 region: this.context.transfer!.region,
                 transferUrl: this.context.transfer!.transferUrl as string,
                 uploadState: this.context.transfer!.uploadState as string,
@@ -225,7 +219,6 @@ export class SmashUploader extends CustomEventEmitter {
                 transfer: {
                     id: this.context.transfer!.id,
                     status: this.context.transfer!.status,
-                    uploadStatus: this.context.transfer!.uploadState,
                     region: this.context.transfer!.region,
                     transferUrl: this.context.transfer!.transferUrl,
                     uploadState: this.context.transfer!.uploadState,
@@ -244,7 +237,6 @@ export class SmashUploader extends CustomEventEmitter {
             transfer: {
                 id: this.context.transfer!.id,
                 status: this.context.transfer!.status,
-                uploadStatus: this.context.transfer!.uploadState as string,
                 region: this.context.transfer!.region,
                 transferUrl: this.context.transfer!.transferUrl as string,
                 uploadState: this.context.transfer!.uploadState as string,
@@ -424,7 +416,7 @@ export class SmashUploader extends CustomEventEmitter {
         return this;
     }
 
-    public upload(params: CreateTransferParameters): Promise<{ transfer: TransferOutput }> {
+    public upload(params: UploadInput): Promise<UploadOutput> {
         return new Promise((resolve, reject) => {
             try {
                 // FIX ME check if upload already in progress => if yes throw error
@@ -447,7 +439,7 @@ export class SmashUploader extends CustomEventEmitter {
         });
     }
 
-    public update(params: UpdateTransferParameters): Promise<UpdateTransferOutput> {
+    public update(params: UpdateTransferInput): Promise<UpdateTransferOutput> {
         return new Promise(async (resolve, reject) => {
             try {
                 if (this.context.isFinished()) {

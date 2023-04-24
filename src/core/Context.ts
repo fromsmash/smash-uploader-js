@@ -1,7 +1,7 @@
 import { Transfer as TransferSdk } from '@smash-sdk/transfer/10-2019';
 import { UpdateTransferOutput } from '@smash-sdk/transfer/10-2019/types/UpdateTransfer/UpdateTransfer';
 import { UploaderStatus } from '../globals/constant';
-import { CreateTransferParameters, UpdateTransferParameters } from '../interface/TransferParameters';
+import { UploadInput, UpdateTransferInput } from '../interface/TransferParameters';
 import { UploaderParameters } from '../interface/UploaderParameters';
 import { CreateFile } from '../modules/tasks/CreateFile';
 import { CreateParts } from '../modules/tasks/CreateParts';
@@ -72,7 +72,7 @@ export class Context {
         });
     }
 
-    public createTransfer(transferParameters: CreateTransferParameters): Context {
+    public createTransfer(transferParameters: UploadInput): Context {
         //TODO FIX ME this value transferParameters can be undefined => make something to manage it and set default values
         // for exemple with an object
         this.transfer = new Transfer(transferParameters);
@@ -80,7 +80,7 @@ export class Context {
         return this;
     }
 
-    public updateTransfer(params: UpdateTransferParameters): Promise<UpdateTransferOutput> {
+    public updateTransfer(params: UpdateTransferInput): Promise<UpdateTransferOutput> {
         //TODO FIX ME this value transferParameters can be undefined => make something to manage it and set default values
         // for exemple with an object
         return new Promise(async (resolve, reject) => {

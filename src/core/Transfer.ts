@@ -11,7 +11,7 @@ import { GetTransferOutput } from '@smash-sdk/transfer/10-2019/types/GetTransfer
 import { GetTransferFileOutput } from '@smash-sdk/transfer/10-2019/types/GetTransferFile/GetTransferFile';
 import { UpdateTransferOutput } from '@smash-sdk/transfer/10-2019/types/UpdateTransfer/UpdateTransfer';
 import { UploadTransferFilePartOutput } from '@smash-sdk/transfer/10-2019/types/UploadTransferFilePart/UploadTransferFilePart';
-import { CreateTransferParameters } from '../interface/TransferParameters';
+import { UploadInput } from '../interface/TransferParameters';
 import { FileItem } from './FileItem';
 import { Files } from './Files';
 import { Part } from './Part';
@@ -84,7 +84,7 @@ export class Transfer {
     public parallelMaxParts!: number;
     public parallelConnections!: number;
 
-    constructor(transferParameters: CreateTransferParameters) {
+    constructor(transferParameters: UploadInput) {
         //sanity check transferParameters with joi
         this.files = new Files(transferParameters.files);
         if (transferParameters) {

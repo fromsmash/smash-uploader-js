@@ -1,5 +1,5 @@
-export type CreateTransferParameters = TransferFiles & CreateTransfer;
-export type UpdateTransferParameters = TransferFiles & UpdateTransfer;
+export type UploadInput = TransferFiles & CreateTransfer;
+export type UpdateTransferInput = TransferFiles & UpdateTransfer;
 interface UpdateTransfer {
     language?: string;
     availabilityDuration?: number;
