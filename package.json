@@ -1,6 +1,6 @@
 {
   "name": "@smash-sdk/uploader",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Smash uploader library",
   "main": "./dist/SmashUploader.js",
   "browser": "./dist/SmashUploader.browser.js",
@@ -74,8 +74,8 @@
     "webpack-node-externals": "^3.0.0"
   },
   "dependencies": {
-    "@smash-sdk/core": "^2.0.0",
-    "@smash-sdk/transfer": "^0.0.9",
+    "@smash-sdk/core": "^2.0.1",
+    "@smash-sdk/transfer": "^0.0.14",
     "uuid": "^8.3.2"
   }
 }

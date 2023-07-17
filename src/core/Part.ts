@@ -1,4 +1,4 @@
-import { UploadTransferFilePartOutput } from '@smash-sdk/transfer/10-2019/types/UploadTransferFilePart/UploadTransferFilePart';
+import { UploadTransferFilePartOutput } from '@smash-sdk/transfer/10-2019';
 
 export class Part {
     id: number;

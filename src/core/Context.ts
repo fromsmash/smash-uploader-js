@@ -1,12 +1,10 @@
 import { Transfer as TransferSdk } from '@smash-sdk/transfer/10-2019';
-import { UpdateTransferOutput } from '@smash-sdk/transfer/10-2019/types/UpdateTransfer/UpdateTransfer';
 import { UploaderStatus } from '../globals/constant';
-import { UploadInput, UpdateTransferInput } from '../interface/TransferParameters';
+import { UploadInput, UpdateInput } from '../interface/Input';
 import { UploaderParameters } from '../interface/UploaderParameters';
 import { CreateFile } from '../modules/tasks/CreateFile';
 import { CreateParts } from '../modules/tasks/CreateParts';
 import { CreateTransfer } from '../modules/tasks/CreateTransfer';
-import { GetFile } from '../modules/tasks/GetFile';
 import { LockTransfer } from '../modules/tasks/LockTransfer';
 import { Task } from '../modules/tasks/Task';
 import { UpdateFile } from '../modules/tasks/UpdateFile';
@@ -16,12 +14,12 @@ import { Files } from './Files';
 import { Logger } from './Logger';
 import { Queue } from './Queue';
 import { Transfer } from './Transfer';
+import { UpdateOutput } from '../interface/Output';
 
 export interface Queues {
     taskQueue: Queue<Task>,
     createTransferQueue: Queue<CreateTransfer>,
     createFileQueue: Queue<CreateFile>,
-    getFileQueue: Queue<GetFile>,
     createPartsQueue: Queue<CreateParts>,
     uploadPartQueue: Queue<UploadPart>,
     updatePartsQueue: Queue<UpdateParts>,
@@ -29,10 +27,10 @@ export interface Queues {
     lockTransferQueue: Queue<LockTransfer>,
 }
 
-export class Context {
+export class Context {// FIX ME change to UploaderParameters class which does sanity check
     readonly logger: Logger;
     public transferSdk: TransferSdk;
-    public uploaderParameters: UploaderParameters; // FIX ME change to UploaderParameters class which does sanity check
+    public uploaderParameters: UploaderParameters; 
 
     public lastValueUploadedBytes = 0;
     public speed = 0;
@@ -43,17 +41,17 @@ export class Context {
     public transfer?: Transfer;
     public startingDate?: string;
     public startedDate?: string;
+    public queuedDate?: string;
     public uploadingDate?: string;
     public finishingDate?: string;
     public finishedDate?: string;
     public cancelDate?: string;
 
-    private status: UploaderStatus = UploaderStatus.Pending; //FIX ME TODO initial status? if status id can
+    public status: UploaderStatus = UploaderStatus.Pending; //FIX ME TODO initial status? if status id can
 
     public taskQueue = new Queue<Task>();
     public createTransferQueue = new Queue<CreateTransfer>();
     public createFileQueue = new Queue<CreateFile>();
-    public getFileQueue = new Queue<GetFile>();
     public createPartsQueue = new Queue<CreateParts>();
     public uploadPartQueue = new Queue<UploadPart>();
     public updateFileQueue = new Queue<UpdateFile>();
@@ -80,7 +78,7 @@ export class Context {
         return this;
     }
 
-    public updateTransfer(params: UpdateTransferInput): Promise<UpdateTransferOutput> {
+    public updateTransfer(params: UpdateInput): Promise<UpdateOutput> {
         //TODO FIX ME this value transferParameters can be undefined => make something to manage it and set default values
         // for exemple with an object
         return new Promise(async (resolve, reject) => {
@@ -90,9 +88,25 @@ export class Context {
                 this.transfer!.files.forEach(file => {
                     this.createFileQueue.add(new CreateFile(this, file));
                 });
-                const response = await this.transferSdk.updateTransfer({ transferId: this.transfer!.id, ...params });
+                const response = await this.transferSdk.updateTransfer({ transferId: this.transfer!.id!, ...params });
                 this.transfer!.populateUpdatedTransfer(response);
-                resolve(response);
+                resolve({
+                    transfer: {
+                        id: response.transfer.id,
+                        status: response.transfer.status,
+                        region: response.transfer.region,
+                        transferUrl: response.transfer.transferUrl,
+                        uploadState: response.transfer.uploadState,
+                        availabilityEndDate: response.transfer.availabilityEndDate,
+                        availabilityDuration: response.transfer.availabilityDuration,
+                        availabilityStartDate: response.transfer.availabilityStartDate,
+                        size: response.transfer.size,
+                        preview: response.transfer.preview,
+                        created: response.transfer.created,
+                        modified: response.transfer.modified,
+                        filesNumber: response.transfer.filesNumber,
+                    }
+                });
             } catch (error) {
                 reject(error);
             }
@@ -120,6 +134,12 @@ export class Context {
         return this;
     }
 
+    public queued(): Context {  
+        this.status = UploaderStatus.Queued;
+        this.queuedDate = new Date().toISOString();
+        return this;
+    }
+
     public uploading(): Context {
         this.status = UploaderStatus.Uploading;
         this.uploadingDate = new Date().toISOString();
@@ -137,6 +157,11 @@ export class Context {
     public finished(): Context {
         this.status = UploaderStatus.Finished;
         this.finishedDate = new Date().toISOString();
+        return this;
+    }
+
+    public error(): Context {
+        this.status = UploaderStatus.Error;
         return this;
     }
 
@@ -170,7 +195,6 @@ export class Context {
             taskQueue: this.taskQueue,
             createTransferQueue: this.createTransferQueue,
             createFileQueue: this.createFileQueue,
-            getFileQueue: this.getFileQueue,
             createPartsQueue: this.createPartsQueue,
             uploadPartQueue: this.uploadPartQueue,
             updateFileQueue: this.updateFileQueue,
@@ -194,7 +218,6 @@ export class Context {
         this.taskQueue = new Queue<Task>();
         this.createTransferQueue = new Queue<CreateTransfer>();
         this.createFileQueue = new Queue<CreateFile>();
-        this.getFileQueue = new Queue<GetFile>();
         this.createPartsQueue = new Queue<CreateParts>();
         this.uploadPartQueue = new Queue<UploadPart>();
         this.updateFileQueue = new Queue<UpdateFile>();

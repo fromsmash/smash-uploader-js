@@ -1,21 +1,26 @@
-import { CreateTransferFileOutput } from '@smash-sdk/transfer/07-2020/types/CreateTransferFile/CreateTransferFile';
-import { CreateTransferFilePartsOutput } from '@smash-sdk/transfer/07-2020/types/CreateTransferFileParts/CreateTransferFileParts';
-import { LockTransferOutput } from '@smash-sdk/transfer/07-2020/types/LockTransfer/LockTransfer';
-import { UpdateTransferFileOutput } from '@smash-sdk/transfer/07-2020/types/UpdateTransferFile/UpdateTransferFile';
-import { UpdateTransferFilePartsOutput } from '@smash-sdk/transfer/07-2020/types/UpdateTransferFileParts/UpdateTransferFileParts';
-import { CreateTeamTransferOutput } from '@smash-sdk/transfer/10-2019/types/CreateTeamTransfer/CreateTeamTransfer';
-import { CreateTransferOutput } from '@smash-sdk/transfer/10-2019/types/CreateTransfer/CreateTransfer';
-import { GetTeamTransferOutput } from '@smash-sdk/transfer/10-2019/types/GetTeamTransfer/GetTeamTransfer';
-import { GetTeamTransferFileOutput } from '@smash-sdk/transfer/10-2019/types/GetTeamTransferFile/GetTeamTransferFile';
-import { GetTransferOutput } from '@smash-sdk/transfer/10-2019/types/GetTransfer/GetTransfer';
-import { GetTransferFileOutput } from '@smash-sdk/transfer/10-2019/types/GetTransferFile/GetTransferFile';
-import { UpdateTransferOutput } from '@smash-sdk/transfer/10-2019/types/UpdateTransfer/UpdateTransfer';
-import { UploadTransferFilePartOutput } from '@smash-sdk/transfer/10-2019/types/UploadTransferFilePart/UploadTransferFilePart';
-import { UploadInput } from '../interface/TransferParameters';
+import {
+    CreateTransferFileOutput,
+    CreateTransferFilePartsOutput,
+    LockTransferOutput,
+    UpdateTransferFileOutput,
+    UpdateTransferFilePartsOutput,
+    CreateTeamTransferOutput,
+    CreateTransferOutput,
+    GetTeamTransferOutput,
+    GetTeamTransferFileOutput,
+    GetTransferOutput,
+    GetTransferFileOutput,
+    UpdateTransferOutput,
+    UploadTransferFilePartOutput,
+} from '@smash-sdk/transfer/07-2020';
+//import { LockTransferOutput } from '@smash-sdk/transfer/10-2019';
+
+import { UploadInput } from '../interface/Input';
 import { FileItem } from './FileItem';
 import { Files } from './Files';
 import { Part } from './Part';
 import { Parts } from './Parts';
+import { AccessTracking, DeliveryType, NotificationType, Preview, Region, Status, UploadState } from '../interface/Transfer';
 
 type CustomizationOutput = {
     logo?: {
@@ -41,11 +46,11 @@ export class Transfer {
     public files: Files;
     public filesProcessing: Files = new Files();
     public filesCompleted: Files = new Files();
-    public id!: string;
-    public status!: string;
-    public region!: string;
+    public id?: string;
+    public status?: Status;
+    public region?: Region;
     public transferUrl?: string;
-    public uploadState?: string;
+    public uploadState?: UploadState;
     public created?: string;
     public modified?: string;
     public deleted?: string;
@@ -57,10 +62,9 @@ export class Transfer {
     public availabilityDuration?: number;
     public availabilityEndDate?: string;
     public title?: string;
-    public queue?: number;
     public queuedUntil?: string;
     public delivery?: {
-        type: "Email" | "Link",
+        type: DeliveryType,
         sender?: {
             name?: string,
             email: string,
@@ -74,9 +78,9 @@ export class Transfer {
         id: string,
     };
 
-    public preview?: "Full" | "None";
-    public accessTracking?: "Email" | "None";
-    public notificationType?: "None" | "All";
+    public preview?: Preview;
+    public accessTracking?: AccessTracking;
+    public notificationType?: NotificationType;
     public password?: string;
     public description?: string;
     public parallelFiles!: number;
@@ -143,7 +147,6 @@ export class Transfer {
         this.availabilityDuration = transfer.availabilityDuration;
         this.availabilityStartDate = transfer.availabilityStartDate;
         this.delivery = transfer.delivery;
-        this.queue = transfer.queue;
         this.queuedUntil = transfer.queuedUntil;
         return this;
     }
@@ -165,7 +168,6 @@ export class Transfer {
         this.availabilityDuration = transfer.availabilityDuration;
         this.availabilityStartDate = transfer.availabilityStartDate;
         this.delivery = transfer.delivery;
-        this.queue = transfer.queue;
         this.queuedUntil = transfer.queuedUntil;
         return this;
     }

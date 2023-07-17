@@ -1,5 +1,4 @@
-import { CreateTeamTransferInput, CreateTeamTransferOutput } from '@smash-sdk/transfer/10-2019/types/CreateTeamTransfer/CreateTeamTransfer';
-import { CreateTransferInput, CreateTransferOutput } from '@smash-sdk/transfer/10-2019/types/CreateTransfer/CreateTransfer';
+import { CreateTeamTransferInput, CreateTeamTransferOutput, CreateTransferInput, CreateTransferOutput } from '@smash-sdk/transfer/10-2019';
 import { SDKError } from '@smash-sdk/core';
 import { Context } from '../../core/Context';
 import { CustomizationInput, Transfer } from '../../core/Transfer';
@@ -7,6 +6,8 @@ import { TaskError } from '../../errors/TaskError';
 import { AbstractTask } from './AbstractTask';
 import { CreateFile } from './CreateFile';
 import { Task } from './Task';
+import { UploaderError } from '../../errors/UploaderError';
+import { UnauthorizedError, InvalidParameterError, InvalidDeliveryError, EmailNotAllowedError, InvalidAvailabilityDurationError, InvalidSubscriptionError, MissingReceiversError, PasswordRequiredError, UsageExceededError, CustomUrlAlreadyInUseError, MissingSenderError } from '../../errors/errors';
 
 export class CreateTransfer extends AbstractTask<Task> {
     private transfer: Transfer;
@@ -19,13 +20,29 @@ export class CreateTransfer extends AbstractTask<Task> {
         this.context.transferSdk.errors.CreateTeamTransferError.UnauthorizedError,
         this.context.transferSdk.errors.CreateTransferError.InvalidParameterError,
         this.context.transferSdk.errors.CreateTeamTransferError.InvalidParameterError,
-        this.context.transferSdk.errors.CreateTransferError.ForbiddenError,
-        this.context.transferSdk.errors.CreateTeamTransferError.ForbiddenError,
+        this.context.transferSdk.errors.CreateTransferError.InvalidDeliveryError,
+        this.context.transferSdk.errors.CreateTeamTransferError.InvalidDeliveryError,
+        this.context.transferSdk.errors.CreateTransferError.EmailNotAllowedError,
+        this.context.transferSdk.errors.CreateTeamTransferError.EmailNotAllowedError,
+        this.context.transferSdk.errors.CreateTransferError.InvalidAvailabilityDurationError,
+        this.context.transferSdk.errors.CreateTeamTransferError.InvalidAvailabilityDurationError,
+        this.context.transferSdk.errors.CreateTransferError.InvalidSubscriptionError,
+        this.context.transferSdk.errors.CreateTeamTransferError.InvalidSubscriptionError,
+        this.context.transferSdk.errors.CreateTransferError.MissingReceiversError,
+        this.context.transferSdk.errors.CreateTeamTransferError.MissingReceiversError,
+        this.context.transferSdk.errors.CreateTransferError.MissingSenderError,
+        this.context.transferSdk.errors.CreateTeamTransferError.MissingSenderError,
+        this.context.transferSdk.errors.CreateTransferError.PasswordRequiredError,
+        this.context.transferSdk.errors.CreateTeamTransferError.PasswordRequiredError,
+        this.context.transferSdk.errors.CreateTransferError.UsageExceededError,
+        this.context.transferSdk.errors.CreateTeamTransferError.UsageExceededError,
         this.context.transferSdk.errors.CreateTransferError.CustomUrlAlreadyInUseError,
         this.context.transferSdk.errors.CreateTeamTransferError.CustomUrlAlreadyInUseError,
         this.context.transferSdk.errors.CreateTransferError.UnknownError,
         this.context.transferSdk.errors.CreateTeamTransferError.UnknownError,
     ];
+
+    protected readonly uploaderFatalErrors: typeof UploaderError[] = [];
 
     constructor(context: Context) {
         super(context);
@@ -47,7 +64,6 @@ export class CreateTransfer extends AbstractTask<Task> {
                 description: context.transfer.description,
                 filesNumber: context.transfer.filesNumber,
                 teamId: context.transfer.teamId,
-                domain: context.transfer.domain,
             };
         } else {
             this.createTransferParameters = {
@@ -65,7 +81,6 @@ export class CreateTransfer extends AbstractTask<Task> {
                 notificationType: context.transfer!.notificationType,
                 description: context.transfer!.description,
                 filesNumber: context.transfer!.filesNumber,
-                domain: context.transfer!.domain,
             };
         }
     }
@@ -87,28 +102,7 @@ export class CreateTransfer extends AbstractTask<Task> {
                     this.response = await this.context.transferSdk.createTransfer(this.createTransferParameters);
                 }
             } catch (error) {
-                if (error instanceof this.context.transferSdk.errors.CreateTeamTransferError.UnauthorizedError ||
-                    error instanceof this.context.transferSdk.errors.CreateTeamTransferError.ForbiddenError ||
-                    error instanceof this.context.transferSdk.errors.CreateTeamTransferError.InvalidParameterError ||
-                    error instanceof this.context.transferSdk.errors.CreateTeamTransferError.CustomUrlAlreadyInUseError ||
-                    error instanceof this.context.transferSdk.errors.CreateTransferError.UnauthorizedError ||
-                    error instanceof this.context.transferSdk.errors.CreateTransferError.ForbiddenError ||
-                    error instanceof this.context.transferSdk.errors.CreateTransferError.InvalidParameterError ||
-                    error instanceof this.context.transferSdk.errors.CreateTransferError.CustomUrlAlreadyInUseError ||
-                    error instanceof this.context.transferSdk.errors.CreateTeamTransferError.InternalServerError ||
-                    error instanceof this.context.transferSdk.errors.CreateTransferError.InternalServerError ||
-                    error instanceof this.context.transferSdk.errors.CreateTeamTransferError.GatewayTimeoutError ||
-                    error instanceof this.context.transferSdk.errors.CreateTransferError.GatewayTimeoutError ||
-                    error instanceof this.context.transferSdk.errors.CreateTeamTransferError.BadGatewayError ||
-                    error instanceof this.context.transferSdk.errors.CreateTransferError.BadGatewayError ||
-                    error instanceof this.context.transferSdk.errors.CreateTeamTransferError.UnknownError ||
-                    error instanceof this.context.transferSdk.errors.CreateTransferError.UnknownError ||
-                    error instanceof this.context.transferSdk.errors.CreateTransferError.NetworkError
-                ) {
-                    this.error = new TaskError(this, error);
-                } else {
-                    this.error = new TaskError(this, error);
-                }
+                this.error = new TaskError(this, error);
             }
             resolve(this);
         });
@@ -125,7 +119,82 @@ export class CreateTransfer extends AbstractTask<Task> {
     public processError(): TaskError {
         if (this.error) {
             if (this.error.isInstanceOfOneOfTheseErrors(this.sdkFatalErrors)) {
-                this.error.unrecoverableError();
+                if (
+                    this.error.getError() instanceof this.context.transferSdk.errors.CreateTransferError.UnauthorizedError ||
+                    this.error.getError() instanceof this.context.transferSdk.errors.CreateTeamTransferError.UnauthorizedError
+                ) {
+                    const publicError = new UnauthorizedError(this.error.getError() as SDKError);
+                    this.error.unrecoverableError(publicError);
+                } else if (
+                    this.error.getError() instanceof this.context.transferSdk.errors.CreateTransferError.InvalidParameterError ||
+                    this.error.getError() instanceof this.context.transferSdk.errors.CreateTeamTransferError.InvalidParameterError
+                ) {
+                    const publicError = new InvalidParameterError(this.error.getError() as SDKError);
+                    this.error.unrecoverableError(publicError);
+                } else if (
+                    this.error.getError() instanceof this.context.transferSdk.errors.CreateTransferError.InvalidDeliveryError ||
+                    this.error.getError() instanceof this.context.transferSdk.errors.CreateTeamTransferError.InvalidDeliveryError
+                ) {
+                    const publicError = new InvalidDeliveryError(this.error.getError() as SDKError);
+                    this.error.unrecoverableError(publicError);
+                } else if (
+                    this.error.getError() instanceof this.context.transferSdk.errors.CreateTransferError.EmailNotAllowedError ||
+                    this.error.getError() instanceof this.context.transferSdk.errors.CreateTeamTransferError.EmailNotAllowedError
+                ) {
+                    const publicError = new EmailNotAllowedError(this.error.getError() as SDKError);
+                    this.error.unrecoverableError(publicError);
+                } else if (
+                    this.error.getError() instanceof this.context.transferSdk.errors.CreateTransferError.InvalidAvailabilityDurationError ||
+                    this.error.getError() instanceof this.context.transferSdk.errors.CreateTeamTransferError.InvalidAvailabilityDurationError
+                ) {
+                    const publicError = new InvalidAvailabilityDurationError(this.error.getError() as SDKError);
+                    this.error.unrecoverableError(publicError);
+                } else if (
+                    this.error.getError() instanceof this.context.transferSdk.errors.CreateTransferError.InvalidSubscriptionError ||
+                    this.error.getError() instanceof this.context.transferSdk.errors.CreateTeamTransferError.InvalidSubscriptionError
+                ) {
+                    const publicError = new InvalidSubscriptionError(this.error.getError() as SDKError);
+                    this.error.unrecoverableError(publicError);
+                } else if (
+                    this.error.getError() instanceof this.context.transferSdk.errors.CreateTransferError.MissingReceiversError ||
+                    this.error.getError() instanceof this.context.transferSdk.errors.CreateTeamTransferError.MissingReceiversError
+                ) {
+                    const publicError = new MissingReceiversError(this.error.getError() as SDKError);
+                    this.error.unrecoverableError(publicError);
+                } else if (
+                    this.error.getError() instanceof this.context.transferSdk.errors.CreateTransferError.MissingSenderError ||
+                    this.error.getError() instanceof this.context.transferSdk.errors.CreateTeamTransferError.MissingSenderError
+                ) {
+                    const publicError = new MissingSenderError(this.error.getError() as SDKError);
+                    this.error.unrecoverableError(publicError);
+                } else if (
+                    this.error.getError() instanceof this.context.transferSdk.errors.CreateTransferError.PasswordRequiredError ||
+                    this.error.getError() instanceof this.context.transferSdk.errors.CreateTeamTransferError.PasswordRequiredError
+                ) {
+                    const publicError = new PasswordRequiredError(this.error.getError() as SDKError);
+                    this.error.unrecoverableError(publicError);
+                } else if (
+                    this.error.getError() instanceof this.context.transferSdk.errors.CreateTransferError.UsageExceededError ||
+                    this.error.getError() instanceof this.context.transferSdk.errors.CreateTeamTransferError.UsageExceededError
+                ) {
+                    const publicError = new UsageExceededError(this.error.getError() as SDKError);
+                    this.error.unrecoverableError(publicError);
+                } else if (
+                    this.error.getError() instanceof this.context.transferSdk.errors.CreateTransferError.CustomUrlAlreadyInUseError ||
+                    this.error.getError() instanceof this.context.transferSdk.errors.CreateTeamTransferError.CustomUrlAlreadyInUseError
+                ) {
+                    const publicError = new CustomUrlAlreadyInUseError(this.error.getError() as SDKError);
+                    this.error.unrecoverableError(publicError);
+                } else if (
+                    this.error.getError() instanceof this.context.transferSdk.errors.CreateTransferError.UnknownError ||
+                    this.error.getError() instanceof this.context.transferSdk.errors.CreateTeamTransferError.UnknownError
+                ) {
+                    const publicError = new UploaderError(this.error.getError() as Error)
+                    this.error.unrecoverableError(publicError);
+                } else {
+                    const publicError = new UploaderError(this.error.getError() as Error)
+                    this.error.unrecoverableError(publicError);
+                }
             } else if (
                 this.error.getError() instanceof this.context.transferSdk.errors.CreateTransferError.NetworkError ||
                 this.error.getError() instanceof this.context.transferSdk.errors.CreateTeamTransferError.NetworkError
@@ -134,7 +203,8 @@ export class CreateTransfer extends AbstractTask<Task> {
             } else if (this.executionNumber < this.maxExecutionNumber) {
                 this.error.setRecoveryTask(this.error.getTask());
             } else {
-                this.error.unrecoverableError();
+                const publicError = new UploaderError(this.error.getError() as Error);
+                this.error.unrecoverableError(publicError);
             }
             return this.error;
         }

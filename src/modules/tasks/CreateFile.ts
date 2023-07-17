@@ -1,11 +1,10 @@
-import { CreateTransferFileInput, CreateTransferFileOutput } from '@smash-sdk/transfer/07-2020/types/CreateTransferFile/CreateTransferFile';
-import { GetTeamTransferFileOutput } from '@smash-sdk/transfer/10-2019/types/GetTeamTransferFile/GetTeamTransferFile';
-import { GetTransferFileOutput } from '@smash-sdk/transfer/10-2019/types/GetTransferFile/GetTransferFile';
 import { SDKError } from '@smash-sdk/core';
+import { CreateTransferFileInput, CreateTransferFileOutput, GetTeamTransferFileOutput, GetTransferFileOutput } from '@smash-sdk/transfer/07-2020';
 import { Context } from '../../core/Context';
 import { FileItem } from '../../core/FileItem';
 import { Transfer } from '../../core/Transfer';
 import { TaskError } from '../../errors/TaskError';
+import { UploaderError } from '../../errors/UploaderError';
 import { AbstractTask } from './AbstractTask';
 import { CreateParts } from './CreateParts';
 import { Task } from './Task';
@@ -30,7 +29,7 @@ export class CreateFile extends AbstractTask<Task> {
         this.transfer = context.transfer!;
         this.file = file;
         this.createTransferFileParameters = {
-            transferId: this.transfer.id,
+            transferId: this.transfer.id!,
             size: this.file.size,
             name: this.file.name,
         };
@@ -47,13 +46,8 @@ export class CreateFile extends AbstractTask<Task> {
                 resolve(file);
             } catch (error: unknown) {
                 if (error instanceof this.context.transferSdk.errors.CreateTransferFileError.ConflictError) {
-                    if (this.transfer.teamId) {
-                        const file = await this.context.transferSdk.getTeamTransferFile({ transferId: this.transfer.id, fileId: this.file.id, teamId: this.transfer.teamId });
-                        resolve(file);
-                    } else {
-                        const file = await this.context.transferSdk.getTransferFile({ transferId: this.transfer.id, fileId: this.file.id });
-                        resolve(file);
-                    }
+                    const file = await this.context.transferSdk.getTransferFile({ transferId: this.transfer.id!, fileId: error.details?.secondary! });
+                    resolve(file);
                 } else {
                     reject(error);
                 }
@@ -66,7 +60,6 @@ export class CreateFile extends AbstractTask<Task> {
             try {
                 this.response = await this.createTransferFile();
             } catch (error) {
-                // TODO CORS Error (only browser)
                 if (error instanceof this.context.transferSdk.errors.CreateTransferFileError.UnauthorizedError ||
                     error instanceof this.context.transferSdk.errors.CreateTransferFileError.TransferAlreadyLockedError ||
                     error instanceof this.context.transferSdk.errors.CreateTransferFileError.InvalidParameterError ||
@@ -108,13 +101,13 @@ export class CreateFile extends AbstractTask<Task> {
     public processError(): TaskError {
         if (this.error) {
             if (this.error.isInstanceOfOneOfTheseErrors(this.sdkFatalErrors)) {
-                this.error.unrecoverableError();
+                this.error.unrecoverableError(new UploaderError(this.error.getError() as SDKError));
             } else if (this.error.getError() instanceof this.context.transferSdk.errors.CreateTransferFileError.NetworkError) {
                 this.error.setRecoveryTask(this.error.getTask());
             } else if (this.executionNumber < this.maxExecutionNumber) {
                 this.error.setRecoveryTask(this.error.getTask());
             } else {
-                this.error.unrecoverableError();
+                this.error.unrecoverableError(new UploaderError(this.error.getError() as Error));
             }
             return this.error;
         }

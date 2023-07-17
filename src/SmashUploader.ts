@@ -1,27 +1,115 @@
-import { UpdateTransferOutput } from '@smash-sdk/transfer/10-2019';
 import { Context } from './core/Context';
 import { CustomEventEmitter } from './core/CustomEventEmitter';
+import { TaskError } from './errors/TaskError';
+import { UploaderError } from './errors/UploaderError';
+import { CanceledEvent, CanceledEventInput } from './events/CanceledEvent';
+import { ChangesEvent } from './events/ChangesEvent';
 import { ConnectionAvailableEvent } from './events/ConnectionAvailableEvent';
 import { ConnectionBusyEvent } from './events/ConnectionBusyEvent';
-import { UploadProgressEvent } from './events/UploadProgressEvent';
-import { ConnectionEvents, UploaderEvents, UploaderStatus } from './globals/constant';
-import { UploaderError } from './helpers/errors';
-import { UploadOutput } from './interface/UploadOutput';
-import { UploadInput, UpdateTransferInput } from './interface/TransferParameters';
+import { FinishedEvent, FinishedEventInput } from './events/FinishedEvent';
+import { FinishingEvent, FinishingEventInput } from './events/FinishingEvent';
+import { QueuedEvent, QueuedEventInput } from './events/QueuedEvent';
+import { StartedEvent, StartedEventInput } from './events/StartedEvent';
+import { StartingEvent, StartingEventInput } from './events/StartingEvent';
+import { StatusEvent, StatusEventInput } from './events/StatusEvent';
+import { UploadErrorEvent } from './events/UploadErrorEvent';
+import { UploadProgressEvent, UploadProgressEventInput } from './events/UploadProgressEvent';
+import { ConnectionEvents, UploaderStatus } from './globals/constant';
+import { UploaderEvent } from './interface/Event';
+import { UpdateInput, UploadInput } from './interface/Input';
+import { UpdateOutput, UploadCanceledOutput, UploadCompleteOutput } from './interface/Output';
+import { Preview } from './interface/Transfer';
 import { UploaderParameters } from './interface/UploaderParameters';
 import { Connection } from './modules/handlers/Connection';
 import { Connections } from './modules/handlers/Connections';
 import { Sequencer } from './modules/Sequencer';
 import { Task } from './modules/tasks/Task';
 
-export { UploaderEvents } from './globals/constant';
+export {
+    CanceledEvent,
+    ChangesEvent,
+    FinishedEvent,
+    FinishingEvent,
+    QueuedEvent,
+    StartedEvent,
+    StartingEvent,
+    StatusEvent,
+    UploadErrorEvent,
+    UploadProgressEvent
+} from './events';
+
+import {
+    EmptyFileListError,
+    FileReaderAbortError,
+    FileReaderNotReadableError,
+    FileReaderSecurityError,
+    FileReaderUnknownError,
+    FileReaderNotFoundError,
+    InvalidParameterError,
+    CustomUrlAlreadyInUseError,
+    TransferAlreadyFinishedError,
+    TransferAlreadyStartedError,
+    TransferIsInQueueError,
+    UnauthorizedError,
+    UnvalidTokenError,
+    PasswordRequiredError,
+    EmailNotAllowedError,
+    FileSystemAbortError,
+    FileSystemNotFoundError,
+    FileSystemPermissionDeniedError,
+    FileSystemUnknownError,
+    InvalidAvailabilityDurationError,
+    InvalidDeliveryError,
+    InvalidSubscriptionError,
+    MissingReceiversError,
+    MissingSenderError,
+    UnsupportedFileSource,
+    UsageExceededError,
+    NetworkError,
+} from './errors/errors';
+
+export const errors = {
+    EmptyFileListError,
+    FileReaderAbortError,
+    FileReaderNotReadableError,
+    FileReaderSecurityError,
+    FileReaderUnknownError,
+    FileReaderNotFoundError,
+    InvalidParameterError,
+    CustomUrlAlreadyInUseError,
+    TransferAlreadyFinishedError,
+    TransferAlreadyStartedError,
+    TransferIsInQueueError,
+    UnauthorizedError,
+    UnvalidTokenError,
+    PasswordRequiredError,
+    EmailNotAllowedError,
+    FileSystemAbortError,
+    FileSystemNotFoundError,
+    FileSystemPermissionDeniedError,
+    FileSystemUnknownError,
+    InvalidAvailabilityDurationError,
+    InvalidDeliveryError,
+    InvalidSubscriptionError,
+    MissingReceiversError,
+    MissingSenderError,
+    UnsupportedFileSource,
+    UsageExceededError,
+    NetworkError,
+}
+
+export { UploaderError } from './errors/UploaderError';
+
+export { UploaderEvents, UploaderStatus } from './globals/constant';
+export { UpdateInput, UploadInput } from './interface/Input';
+export { UploaderParameters } from './interface/UploaderParameters';
 
 export class SmashUploader extends CustomEventEmitter {
     private readonly initiaParallelConnections = 1;
     private connections: Connections;
     private sequencer: Sequencer;
     private context: Context;
-    private transferPromise!: { resolve: (value: UploadOutput) => void, reject: (error: Error) => void };
+    private transferPromise!: { resolve: (value: UploadCompleteOutput | UploadCanceledOutput) => void, reject: (error: UploaderError) => void };
     private progressTimer?: NodeJS.Timer;
     private speedTimer?: NodeJS.Timer;
     private queueTimer?: NodeJS.Timer;
@@ -52,209 +140,125 @@ export class SmashUploader extends CustomEventEmitter {
         return this;
     }
 
-    private emitStarting() {
-        this.context.starting();
-        this.emit(UploaderEvents.Starting, {
-            name: UploaderEvents.Starting,
-            data: {
-                transfer: {
-                    id: this.context.transfer!.id,
-                    status: this.context.transfer!.status,
-                    region: this.context.transfer!.region,
-                    transferUrl: this.context.transfer!.transferUrl,
-                    uploadState: this.context.transfer!.uploadState,
-                    availabilityEndDate: this.context.transfer!.availabilityEndDate,
-                    availabilityDuration: this.context.transfer!.availabilityDuration,
-                    availabilityStartDate: this.context.transfer!.availabilityStartDate,
-                    size: this.context.transfer!.size,
-                    preview: this.context.transfer!.preview,
-                    created: this.context.transfer!.created,
-                    modified: this.context.transfer!.modified,
-                    filesNumber: this.context.transfer!.filesNumber,
-                },
-                startingDate: this.context.startingDate,
-            }
-        });
+    private emitChanges(event: UploaderEvent) {
+        const changesEvent = new ChangesEvent({ event });
+        this.emit(changesEvent.name, changesEvent);
     }
 
-    private emitQueue() {
-        this.emit(UploaderEvents.Queued, {
-            name: UploaderEvents.Queued,
-            data: {
-                transfer: {
-                    id: this.context.transfer!.id,
-                    status: this.context.transfer!.status,
-                    region: this.context.transfer!.region,
-                    transferUrl: this.context.transfer!.transferUrl,
-                    uploadState: this.context.transfer!.uploadState,
-                    availabilityEndDate: this.context.transfer!.availabilityEndDate,
-                    availabilityDuration: this.context.transfer!.availabilityDuration,
-                    availabilityStartDate: this.context.transfer!.availabilityStartDate,
-                    size: this.context.transfer!.size,
-                    preview: this.context.transfer!.preview,
-                    created: this.context.transfer!.created,
-                    modified: this.context.transfer!.modified,
-                    filesNumber: this.context.transfer!.filesNumber,
-                },
-            }
-        });
+    private emitStatus() {
+        const statusEvent = new StatusEvent(this.context as StatusEventInput);
+        this.emit(statusEvent.name, statusEvent);
+        this.emitChanges(statusEvent);
+    }
+
+    private emitStarting() {
+        this.context.starting();
+        this.emitStatus();
+        const startingEvent = new StartingEvent(this.context as StartingEventInput);
+        this.emitChanges(startingEvent);
     }
 
     private emitStarted() {
         this.context.started();
-        this.emit(UploaderEvents.Started, {
-            name: UploaderEvents.Started,
-            data: {
-                transfer: {
-                    id: this.context.transfer!.id,
-                    status: this.context.transfer!.status,
-                    region: this.context.transfer!.region,
-                    transferUrl: this.context.transfer!.transferUrl,
-                    uploadState: this.context.transfer!.uploadState,
-                    availabilityEndDate: this.context.transfer!.availabilityEndDate,
-                    availabilityDuration: this.context.transfer!.availabilityDuration,
-                    availabilityStartDate: this.context.transfer!.availabilityStartDate,
-                    size: this.context.transfer!.size,
-                    preview: this.context.transfer!.preview,
-                    created: this.context.transfer!.created,
-                    modified: this.context.transfer!.modified,
-                    filesNumber: this.context.transfer!.filesNumber,
-                },
-                startedDate: this.context.startedDate,
-            }
-        });
+        this.emitStatus();
+        const startedEvent = new StartedEvent(this.context as StartedEventInput);
+        this.emit(startedEvent.name, startedEvent);
+        this.emitChanges(startedEvent);
+    }
+
+    private emitQueue() {
+        this.context.queued();
+        this.emitStatus();
+        const queuedEvent = new QueuedEvent(this.context as QueuedEventInput);
+        this.emit(queuedEvent.name, queuedEvent);
+        this.emitChanges(queuedEvent);
     }
 
     private emitProgress() {
-        const progressEvent = new UploadProgressEvent({
-            speed: this.context.speed,
-            estimatedTime: this.context.estimatedTime,
-            remainingTime: this.context.remainingTime,
-            percent: this.context.percent,
-            totalBytes: this.context.transfer!.size,
-            uploadedBytes: this.context.uploadedBytes,
-        });
-        this.emit(UploaderEvents.Progress, { name: UploaderEvents.Progress, data: { progress: progressEvent.data } });
-    }
-
-    private emitFinishing() {
-        this.emit(UploaderEvents.Finishing,
-            {
-                name: UploaderEvents.Finishing,
-                data: {
-                    transfer: {
-                        id: this.context.transfer!.id,
-                        status: this.context.transfer!.status,
-                        region: this.context.transfer!.region,
-                        transferUrl: this.context.transfer!.transferUrl,
-                        uploadState: this.context.transfer!.uploadState,
-                        availabilityEndDate: this.context.transfer!.availabilityEndDate,
-                        availabilityDuration: this.context.transfer!.availabilityDuration,
-                        availabilityStartDate: this.context.transfer!.availabilityStartDate,
-                        size: this.context.transfer!.size,
-                        preview: this.context.transfer!.preview,
-                        created: this.context.transfer!.created,
-                        modified: this.context.transfer!.modified,
-                        filesNumber: this.context.transfer!.filesNumber,
-                    },
-                }
-            }
-        );
+        const progressEvent = new UploadProgressEvent(this.context as UploadProgressEventInput);
+        this.emit(progressEvent.name, progressEvent);
+        this.emitChanges(progressEvent);
     }
 
     private emitFinished() {
+        this.context.finished();
         this.resetTimers();
-        this.emit(UploaderEvents.Finished, {
-            name: UploaderEvents.Finished,
-            data: {
-                transfer: {
-                    id: this.context.transfer!.id,
-                    status: this.context.transfer!.status,
-                    region: this.context.transfer!.region,
-                    transferUrl: this.context.transfer!.transferUrl,
-                    uploadState: this.context.transfer!.uploadState,
-                    availabilityEndDate: this.context.transfer!.availabilityEndDate,
-                    availabilityDuration: this.context.transfer!.availabilityDuration,
-                    availabilityStartDate: this.context.transfer!.availabilityStartDate,
-                    size: this.context.transfer!.size,
-                    preview: this.context.transfer!.preview,
-                    created: this.context.transfer!.created,
-                    modified: this.context.transfer!.modified,
-                    filesNumber: this.context.transfer!.filesNumber,
-                },
-                startedDate: this.context.startedDate,
-                finishedDate: this.context.finishedDate,
-                duration: new Date(this.context.finishedDate!).getTime() - new Date(this.context.startedDate!).getTime(),
-            }
-        });
+        this.emitStatus();
+        const finishedEvent = new FinishedEvent(this.context as FinishedEventInput);
+        this.emit(finishedEvent.name, finishedEvent);
+        this.emitChanges(finishedEvent);
         this.transferPromise.resolve({
             transfer: {
                 id: this.context.transfer!.id,
                 status: this.context.transfer!.status,
                 region: this.context.transfer!.region,
-                transferUrl: this.context.transfer!.transferUrl as string,
-                uploadState: this.context.transfer!.uploadState as string,
-                availabilityEndDate: this.context.transfer!.availabilityEndDate as string,
-                availabilityDuration: this.context.transfer!.availabilityDuration as number,
-                availabilityStartDate: this.context.transfer!.availabilityStartDate as string,
+                transferUrl: this.context.transfer!.transferUrl,
+                uploadState: this.context.transfer!.uploadState,
+                availabilityEndDate: this.context.transfer!.availabilityEndDate,
+                availabilityDuration: this.context.transfer!.availabilityDuration,
+                availabilityStartDate: this.context.transfer!.availabilityStartDate,
+                preview: this.context.transfer!.preview as Preview,
+                created: this.context.transfer!.created,
+                modified: this.context.transfer!.modified,
                 size: this.context.transfer!.size,
-                preview: this.context.transfer!.preview,
-                created: this.context.transfer!.created as string,
-                modified: this.context.transfer!.modified as string,
                 filesNumber: this.context.transfer!.filesNumber,
             }
         });
+    }
+
+    private emitFinishing() {
+        this.context.finishing();
+        this.emitStatus();
+        const finishingEvent = new FinishingEvent(this.context as FinishingEventInput);
+        this.emit(finishingEvent.name, finishingEvent);
+        this.emitChanges(finishingEvent);
     }
 
     private emitError(error: unknown) {
-        this.emit(UploaderEvents.Error, error as any); //FIX ME type is TaskError or Error type
+        this.context.error();
+        this.emitStatus()
+        if (error instanceof TaskError) {
+            const errorEvent = new UploadErrorEvent({ error: error.getPublicError() });
+            this.emit(errorEvent.name, errorEvent);
+            this.emitChanges(errorEvent);
+            this.transferPromise.reject(error.getPublicError() as UploaderError);
+        } else if (error instanceof Error) {
+            this.transferPromise.reject(new UploaderError(error));
+        } else {
+            this.transferPromise.reject(new UploaderError('Unknown error'));
+        }
         this.reset();
-        this.transferPromise.reject(error as Error);
     }
 
     private emitCanceled() {
-        this.emit(UploaderEvents.Canceled, {
-            name: UploaderEvents.Canceled,
-            data: {
-                transfer: {
-                    id: this.context.transfer!.id,
-                    status: this.context.transfer!.status,
-                    region: this.context.transfer!.region,
-                    transferUrl: this.context.transfer!.transferUrl,
-                    uploadState: this.context.transfer!.uploadState,
-                    availabilityEndDate: this.context.transfer!.availabilityEndDate,
-                    availabilityDuration: this.context.transfer!.availabilityDuration,
-                    availabilityStartDate: this.context.transfer!.availabilityStartDate,
-                    size: this.context.transfer!.size,
-                    preview: this.context.transfer!.preview,
-                    created: this.context.transfer!.created,
-                    modified: this.context.transfer!.modified,
-                    filesNumber: this.context.transfer!.filesNumber,
-                },
-            },
-        });
+        this.context.cancel();
+        this.emitStatus();
+        this.resetTimers();
+        const canceledEvent = new CanceledEvent(this.context as CanceledEventInput);
+        this.emit(canceledEvent.name, canceledEvent);
+        this.emitChanges(canceledEvent);
         this.transferPromise.resolve({
-            transfer: {
-                id: this.context.transfer!.id,
-                status: this.context.transfer!.status,
-                region: this.context.transfer!.region,
-                transferUrl: this.context.transfer!.transferUrl as string,
-                uploadState: this.context.transfer!.uploadState as string,
-                availabilityEndDate: this.context.transfer!.availabilityEndDate as string,
-                availabilityDuration: this.context.transfer!.availabilityDuration as number,
-                availabilityStartDate: this.context.transfer!.availabilityStartDate as string,
-                size: this.context.transfer!.size,
-                preview: this.context.transfer!.preview,
-                created: this.context.transfer!.created as string,
-                modified: this.context.transfer!.modified as string,
-                filesNumber: this.context.transfer!.filesNumber,
-            }
+            transfer: this.context.transfer ? {
+                id: this.context.transfer.id,
+                status: this.context.transfer.status,
+                region: this.context.transfer.region,
+                transferUrl: this.context.transfer.transferUrl,
+                uploadState: this.context.transfer.uploadState,
+                availabilityEndDate: this.context.transfer.availabilityEndDate,
+                availabilityDuration: this.context.transfer.availabilityDuration,
+                availabilityStartDate: this.context.transfer.availabilityStartDate,
+                preview: this.context.transfer.preview,
+                created: this.context.transfer.created,
+                modified: this.context.transfer.modified,
+                size: this.context.transfer.size,
+                filesNumber: this.context.transfer.filesNumber,
+            } : undefined
         });
         this.reset();
     }
 
     private emitQueueIfNeeded() {
-        if (new Date(this.context.transfer!.queuedUntil as string).getTime() > new Date().getTime()) {
+        if (this.context?.transfer?.queuedUntil && new Date(this.context.transfer.queuedUntil).getTime() > new Date().getTime()) {
             this.emitQueue();
         }
     }
@@ -416,16 +420,16 @@ export class SmashUploader extends CustomEventEmitter {
         return this;
     }
 
-    public upload(params: UploadInput): Promise<UploadOutput> {
+    public upload(params: UploadInput): Promise<UploadCompleteOutput | UploadCanceledOutput> {
         return new Promise((resolve, reject) => {
             try {
                 // FIX ME check if upload already in progress => if yes throw error
                 if (this.context.getStatus() !== UploaderStatus.Pending) {
-                    throw new UploaderError('Transfer already started');
+                    throw new TransferAlreadyStartedError('Transfer already started');
                 }
                 this.transferPromise = { resolve, reject };
                 if (!params.files.length) {
-                    throw new UploaderError('You must add some files to create a Transfer');
+                    throw new EmptyFileListError('You must add some files to create a Transfer');
                 }
                 this.context.createTransfer(params);
                 this.emitStarting();
@@ -439,11 +443,11 @@ export class SmashUploader extends CustomEventEmitter {
         });
     }
 
-    public update(params: UpdateTransferInput): Promise<UpdateTransferOutput> {
+    public update(params: UpdateInput): Promise<UpdateOutput> {
         return new Promise(async (resolve, reject) => {
             try {
                 if (this.context.isFinished()) {
-                    throw new UploaderError('Transfer already finished');
+                    throw new TransferAlreadyFinishedError('Transfer already finished');
                 }
                 const updatedTransfer = await this.context.updateTransfer(params);
                 resolve(updatedTransfer);
@@ -464,8 +468,8 @@ export class SmashUploader extends CustomEventEmitter {
             connection.reset();
             // connection.uploadProgress = () => null;// FIX ME REWORK
             // connection.promise.cancel();// FIX ME REWORK
-            //We shall call a uniq function witch do the job
-            //FIX ME reset event emitter?
+            //  We shall call a uniq function witch do the job
+            // FIX ME reset event emitter?
         });
         this.resetTimers();
         this.emitCanceled();

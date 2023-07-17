@@ -1,10 +1,11 @@
-import { CreateTransferFilePartsInput, CreateTransferFilePartsOutput } from '@smash-sdk/transfer/07-2020/types/CreateTransferFileParts/CreateTransferFileParts';
 import { SDKError } from '@smash-sdk/core';
+import { CreateTransferFilePartsInput, CreateTransferFilePartsOutput } from '@smash-sdk/transfer/07-2020';
 import { Context } from '../../core/Context';
 import { FileItem } from '../../core/FileItem';
 import { Parts } from '../../core/Parts';
 import { Transfer } from '../../core/Transfer';
 import { TaskError } from '../../errors/TaskError';
+import { UploaderError } from '../../errors/UploaderError';
 import { AbstractTask } from './AbstractTask';
 import { Task } from './Task';
 import { UploadPart } from './UploadPart';
@@ -30,7 +31,7 @@ export class CreateParts extends AbstractTask<Task> {
         this.file = file;
         this.partsToCreate = partsToCreate;
         this.createTransferFilePartsParameters = {
-            transferId: context.transfer!.id,
+            transferId: context.transfer!.id!,
             fileId: file.id,
             parts: partsToCreate.map<{ id: number }>(part => ({ id: part.id })),
         };
@@ -78,13 +79,13 @@ export class CreateParts extends AbstractTask<Task> {
     public processError(): TaskError {
         if (this.error) {
             if (this.error.isInstanceOfOneOfTheseErrors(this.sdkFatalErrors)) {
-                this.error.unrecoverableError();
+                this.error.unrecoverableError(new UploaderError(this.error.getError() as SDKError));
             } else if (this.error.getError() instanceof this.context.transferSdk.errors.CreateTransferFilePartsError.NetworkError) {
                 this.error.setRecoveryTask(this.error.getTask());
             } else if (this.executionNumber < this.maxExecutionNumber) {
                 this.error.setRecoveryTask(this.error.getTask());
             } else {
-                this.error.unrecoverableError();
+                this.error.unrecoverableError(new UploaderError(this.error.getError() as Error));
             }
             return this.error;
         }

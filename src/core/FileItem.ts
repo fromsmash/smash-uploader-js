@@ -3,13 +3,16 @@ import path from 'path';
 import { isNode } from '../helpers/isNode';
 import { Parts } from './Parts';
 import { Part } from './Part';
-import { CreateTransferFilePartsOutput } from '@smash-sdk/transfer/07-2020/types/CreateTransferFileParts/CreateTransferFileParts';
-import { CreateTransferFileOutput } from '@smash-sdk/transfer/07-2020/types/CreateTransferFile/CreateTransferFile';
-import { UpdateTransferFilePartsOutput } from '@smash-sdk/transfer/07-2020/types/UpdateTransferFileParts/UpdateTransferFileParts';
-import { UpdateTransferFileOutput } from '@smash-sdk/transfer/07-2020/types/UpdateTransferFile/UpdateTransferFile';
-import { UploadTransferFilePartOutput } from '@smash-sdk/transfer/10-2019/types/UploadTransferFilePart/UploadTransferFilePart';
-import { GetTeamTransferFileOutput } from '@smash-sdk/transfer/10-2019/types/GetTeamTransferFile/GetTeamTransferFile';
-import { GetTransferFileOutput } from '@smash-sdk/transfer/10-2019/types/GetTransferFile/GetTransferFile';
+import {
+    CreateTransferFilePartsOutput,
+    CreateTransferFileOutput,
+    UpdateTransferFilePartsOutput,
+    UpdateTransferFileOutput,
+    UploadTransferFilePartOutput,
+    GetTeamTransferFileOutput,
+    GetTransferFileOutput,
+} from '@smash-sdk/transfer/07-2020';
+
 
 export enum UploadeMode {
     Standard = 'Standard',

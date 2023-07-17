@@ -8,6 +8,7 @@ export enum UploaderStatus {
     Pending = 'Pending',
     Starting = 'Starting',
     Started = 'Started',
+    Queued = 'Queued',
     Uploading = 'Uploading',
     Finishing = 'Finishing',
     Finished = 'Finished',
@@ -19,6 +20,7 @@ export enum UploaderStatus {
 }
 
 export enum UploaderEvents {
+    Changes = 'changes',
     Pending = 'pending',
     Starting = 'starting',
     Started = 'started',

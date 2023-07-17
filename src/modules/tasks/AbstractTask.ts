@@ -2,6 +2,7 @@ import { SDKError } from '@smash-sdk/core';
 import { Context } from '../../core/Context';
 import { ContextContainer } from '../../core/ContextContainer';
 import { TaskError } from '../../errors/TaskError';
+import { UploaderError } from '../../errors/UploaderError';
 
 export abstract class AbstractTask<T> extends ContextContainer {
     public executionNumber = 0;
@@ -49,11 +50,11 @@ export abstract class AbstractTask<T> extends ContextContainer {
     public processError(): TaskError {
         if (this.error) {
             if (this.error.isInstanceOfOneOfTheseErrors(this.sdkFatalErrors)) {
-                this.error.unrecoverableError();
+                this.error.unrecoverableError(new UploaderError('SDK Unrecoverable Error'));
             } else if (this.executionNumber < this.maxExecutionNumber) {
                 this.error.setRecoveryTask(this.error.getTask()); // FIX ME Add delay as second optional arg....
             } else {
-                this.error.unrecoverableError();
+                this.error.unrecoverableError(new UploaderError('Unrecoverable Error'));
             }
             return this.error;
         }

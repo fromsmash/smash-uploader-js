@@ -1,4 +1,4 @@
-import { UpdateTransferFileInput, UpdateTransferFileOutput } from '@smash-sdk/transfer/10-2019/types/UpdateTransferFile/UpdateTransferFile';
+import { UpdateTransferFileInput, UpdateTransferFileOutput, GetTeamTransferFileOutput, GetTransferFileOutput } from '@smash-sdk/transfer/10-2019';
 import { SDKError } from '@smash-sdk/core/dist';
 import { Context } from '../../core/Context';
 import { FileItem } from '../../core/FileItem';
@@ -8,19 +8,28 @@ import { AbstractTask } from './AbstractTask';
 import { CreateParts } from './CreateParts';
 import { LockTransfer } from './LockTransfer';
 import { Task } from './Task';
+import { UploaderError } from '../../errors/UploaderError';
 
 export class UpdateFile extends AbstractTask<Task> {
     private transfer: Transfer;
     private file: FileItem;
     private updateTransferFileParameters: UpdateTransferFileInput;
-    private response!: UpdateTransferFileOutput;
+    private response!: UpdateTransferFileOutput | GetTeamTransferFileOutput | GetTransferFileOutput;
 
     protected readonly sdkFatalErrors: typeof SDKError[] = [
-        this.context.transferSdk.errors.UpdateTransferError.InvalidParameterError,
-        this.context.transferSdk.errors.UpdateTransferError.NotFoundError,
-        this.context.transferSdk.errors.UpdateTransferError.TransferAlreadyLockedError,
-        this.context.transferSdk.errors.UpdateTransferError.UnauthorizedError,
-        this.context.transferSdk.errors.UpdateTransferError.UnknownError,
+        this.context.transferSdk.errors.UpdateTransferFileError.InvalidParameterError,
+        this.context.transferSdk.errors.UpdateTransferFileError.NotFoundError,
+        this.context.transferSdk.errors.UpdateTransferFileError.TransferAlreadyLockedError,
+        this.context.transferSdk.errors.UpdateTransferFileError.UnauthorizedError,
+        this.context.transferSdk.errors.UpdateTransferFileError.UnknownError,
+        this.context.transferSdk.errors.GetTeamTransferFileError.NotFoundError,
+        this.context.transferSdk.errors.GetTeamTransferFileError.UnauthorizedError,
+        this.context.transferSdk.errors.GetTeamTransferFileError.UnknownError,
+        this.context.transferSdk.errors.GetTeamTransferFileError.InvalidParameterError,
+        this.context.transferSdk.errors.GetTransferFileError.NotFoundError,
+        this.context.transferSdk.errors.GetTransferFileError.UnauthorizedError,
+        this.context.transferSdk.errors.GetTransferFileError.UnknownError,
+        this.context.transferSdk.errors.GetTransferFileError.InvalidParameterError,
     ];
 
     constructor(context: Context, file: FileItem) {
@@ -28,7 +37,7 @@ export class UpdateFile extends AbstractTask<Task> {
         this.transfer = context.transfer!;
         this.file = file;
         this.updateTransferFileParameters = {
-            transferId: this.transfer.id,
+            transferId: this.transfer.id!,
             fileId: this.file.id,
         };
         if (this.file.hasInlinePartsToValidate()) {
@@ -41,21 +50,62 @@ export class UpdateFile extends AbstractTask<Task> {
         return this;
     }
 
+    private updateFile(): Promise<UpdateTransferFileOutput | GetTeamTransferFileOutput | GetTransferFileOutput> {
+        return new Promise(async (resolve, reject) => {
+            try {
+                const file = await this.context.transferSdk.updateTransferFile(this.updateTransferFileParameters);
+                resolve(file);
+            } catch (error: unknown) {
+                if (error instanceof this.context.transferSdk.errors.UpdateTransferFileError.FileAlreadyLockedError) {
+                    try {
+                        if (this.transfer.teamId) {
+                            const file = await this.context.transferSdk.getTeamTransferFile({ transferId: this.transfer.id!, teamId: this.transfer.teamId, fileId: this.file.id! });
+                            resolve(file);
+                        } else {
+                            const file = await this.context.transferSdk.getTransferFile({ transferId: this.transfer.id!, fileId: this.file.id! });
+                            resolve(file);
+                        }
+                    } catch (error) {
+                        reject(error);
+                    }
+                } else {
+                    reject(error);
+                }
+            }
+        })
+    }
+
     public process(): Promise<UpdateFile> {
         return new Promise(async resolve => {
             try {
-                this.response = await this.context.transferSdk.updateTransferFile(this.updateTransferFileParameters);
+                this.response = await this.updateFile();
             } catch (error: unknown) {
                 if (
-                    error instanceof this.context.transferSdk.errors.UpdateTransferError.InvalidParameterError ||
-                    error instanceof this.context.transferSdk.errors.UpdateTransferError.NotFoundError ||
-                    error instanceof this.context.transferSdk.errors.UpdateTransferError.TransferAlreadyLockedError ||
-                    error instanceof this.context.transferSdk.errors.UpdateTransferError.UnauthorizedError ||
-                    error instanceof this.context.transferSdk.errors.UpdateTransferError.UnknownError ||
-                    error instanceof this.context.transferSdk.errors.UpdateTransferError.InternalServerError ||
-                    error instanceof this.context.transferSdk.errors.UpdateTransferError.BadGatewayError ||
-                    error instanceof this.context.transferSdk.errors.UpdateTransferError.GatewayTimeoutError ||
-                    error instanceof this.context.transferSdk.errors.UpdateTransferError.NetworkError
+                    error instanceof this.context.transferSdk.errors.UpdateTransferFileError.InvalidParameterError ||
+                    error instanceof this.context.transferSdk.errors.UpdateTransferFileError.NotFoundError ||
+                    error instanceof this.context.transferSdk.errors.UpdateTransferFileError.TransferAlreadyLockedError ||
+                    error instanceof this.context.transferSdk.errors.UpdateTransferFileError.UnauthorizedError ||
+                    error instanceof this.context.transferSdk.errors.UpdateTransferFileError.UnknownError ||
+                    error instanceof this.context.transferSdk.errors.UpdateTransferFileError.InternalServerError ||
+                    error instanceof this.context.transferSdk.errors.UpdateTransferFileError.BadGatewayError ||
+                    error instanceof this.context.transferSdk.errors.UpdateTransferFileError.GatewayTimeoutError ||
+                    error instanceof this.context.transferSdk.errors.UpdateTransferFileError.NetworkError ||
+                    error instanceof this.context.transferSdk.errors.GetTeamTransferFileError.NotFoundError ||
+                    error instanceof this.context.transferSdk.errors.GetTeamTransferFileError.UnauthorizedError ||
+                    error instanceof this.context.transferSdk.errors.GetTeamTransferFileError.UnknownError ||
+                    error instanceof this.context.transferSdk.errors.GetTeamTransferFileError.InvalidParameterError ||
+                    error instanceof this.context.transferSdk.errors.GetTeamTransferFileError.InternalServerError ||
+                    error instanceof this.context.transferSdk.errors.GetTeamTransferFileError.BadGatewayError ||
+                    error instanceof this.context.transferSdk.errors.GetTeamTransferFileError.GatewayTimeoutError ||
+                    error instanceof this.context.transferSdk.errors.GetTeamTransferFileError.NetworkError ||
+                    error instanceof this.context.transferSdk.errors.GetTransferFileError.NotFoundError ||
+                    error instanceof this.context.transferSdk.errors.GetTransferFileError.UnauthorizedError ||
+                    error instanceof this.context.transferSdk.errors.GetTransferFileError.UnknownError ||
+                    error instanceof this.context.transferSdk.errors.GetTransferFileError.InvalidParameterError ||
+                    error instanceof this.context.transferSdk.errors.GetTransferFileError.InternalServerError ||
+                    error instanceof this.context.transferSdk.errors.GetTransferFileError.BadGatewayError ||
+                    error instanceof this.context.transferSdk.errors.GetTransferFileError.GatewayTimeoutError ||
+                    error instanceof this.context.transferSdk.errors.GetTransferFileError.NetworkError
                 ) {
                     this.error = new TaskError(this, error);
                 } else {
@@ -69,15 +119,15 @@ export class UpdateFile extends AbstractTask<Task> {
     public processError(): TaskError {
         if (this.error) {
             if (this.error.isInstanceOfOneOfTheseErrors(this.sdkFatalErrors)) {
-                this.error.unrecoverableError();
-            } else if (this.error.getError() instanceof this.context.transferSdk.errors.UpdateTransferError.NetworkError) {
+                this.error.unrecoverableError(new UploaderError(this.error.getError() as SDKError));
+            } else if (this.error.getError() instanceof this.context.transferSdk.errors.UpdateTransferFileError.NetworkError) {
                 this.error.setRecoveryTask(this.error.getTask());
-            } else if (this.error.getError() instanceof this.context.transferSdk.errors.UpdateTransferError.InternalServerError) {
+            } else if (this.error.getError() instanceof this.context.transferSdk.errors.UpdateTransferFileError.InternalServerError) {
                 this.retryFileParts();
             } else if (this.executionNumber < this.maxExecutionNumber) {
                 this.error.setRecoveryTask(this.error.getTask());
             } else {
-                this.error.unrecoverableError();
+                this.error.unrecoverableError(new UploaderError(this.error.getError() as Error));
             }
             return this.error;
         }

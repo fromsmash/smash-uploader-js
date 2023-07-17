@@ -1,12 +1,14 @@
 import { SDKError, UnknownError } from '@smash-sdk/core';
 import { computeDelay } from '../helpers/delay';
 import { Task } from '../modules/tasks/Task';
+import { UploaderError } from './UploaderError';
 
 export class TaskError {
     private task: Task;
     private error: SDKError | Error | unknown;
     private abortUpload = false;
     private recoveryTask: Task | null = null;
+    private publicError?: UploaderError;
 
     constructor(task: Task, error: SDKError | UnknownError | Error | unknown) {
         this.task = task;
@@ -21,12 +23,17 @@ export class TaskError {
         return this.error;
     }
 
-    public isInstanceOfOneOfTheseErrors(sdkErrors: typeof SDKError[]): boolean {
+    public getPublicError(): UploaderError | undefined {
+        return this.publicError;
+    }
+
+    public isInstanceOfOneOfTheseErrors(sdkErrors: typeof SDKError[] | typeof UploaderError[]): boolean {
         return sdkErrors.some(error => this.error instanceof error);
     }
 
-    public unrecoverableError(): TaskError {
+    public unrecoverableError(error: UploaderError): TaskError {
         this.abortUpload = true;
+        this.publicError = error;
         return this;
     }
 

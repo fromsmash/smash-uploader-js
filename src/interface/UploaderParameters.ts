@@ -6,5 +6,4 @@ export interface UploaderParameters {
     token: string,
     verboseLevel?: VerboseLevel,
     refreshTokenMethod?: RefreshTokenMethod
-    //timeout?
 }

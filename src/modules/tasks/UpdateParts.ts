@@ -1,5 +1,5 @@
-import { UpdateTransferFilePartsInput, UpdateTransferFilePartsOutput } from '@smash-sdk/transfer/10-2019/types/UpdateTransferFileParts/UpdateTransferFileParts';
-import { SDKError } from '@smash-sdk/core/dist';
+import { UpdateTransferFilePartsInput, UpdateTransferFilePartsOutput } from '@smash-sdk/transfer/10-2019';
+import { SDKError } from '@smash-sdk/core';
 import { Context } from '../../core/Context';
 import { FileItem } from '../../core/FileItem';
 import { Parts } from '../../core/Parts';
@@ -8,6 +8,7 @@ import { TaskError } from '../../errors/TaskError';
 import { AbstractTask } from './AbstractTask';
 import { Task } from './Task';
 import { UpdateFile } from './UpdateFile';
+import { UploaderError } from '../../errors/UploaderError';
 
 export class UpdateParts extends AbstractTask<Task> {
     private transfer: Transfer;
@@ -31,7 +32,7 @@ export class UpdateParts extends AbstractTask<Task> {
         this.file = file;
         this.parts = parts;
         this.updateTransferFilePartsParameters = {
-            transferId: this.transfer.id,
+            transferId: this.transfer.id!,
             fileId: this.file.id,
             parts: this.parts.map(part => ({ etag: part.etag!, crc32: part.crc32!, id: part.id })),
         };
@@ -78,13 +79,13 @@ export class UpdateParts extends AbstractTask<Task> {
     public processError(): TaskError {
         if (this.error) {
             if (this.error.isInstanceOfOneOfTheseErrors(this.sdkFatalErrors)) {
-                this.error.unrecoverableError();
+                this.error.unrecoverableError(new UploaderError(this.error.getError() as SDKError));
             } else if (this.error.getError() instanceof this.context.transferSdk.errors.UpdateTransferFilePartsError.NetworkError) {
                 this.error.setRecoveryTask(this.error.getTask());
             } else if (this.executionNumber < this.maxExecutionNumber) {
                 this.error.setRecoveryTask(this.error.getTask());
             } else {
-                this.error.unrecoverableError();
+                this.error.unrecoverableError(new UploaderError(this.error.getError() as Error));
             }
             return this.error;
         }

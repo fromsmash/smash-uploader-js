@@ -6,7 +6,6 @@ type Evaluation = { key: keyof Queues, condition: ((context: Context) => boolean
 export class Sequencer {
     private readonly evaluationOrder: Array<Evaluation> = [
         { key: 'taskQueue', condition: null },
-        { key: 'getFileQueue', condition: null },
         { key: 'createTransferQueue', condition: null },
         { key: 'createFileQueue', condition: this.hasEnoughFilesProcessing },
         { key: 'createPartsQueue', condition: this.hasEnoughPartsProcessing },

@@ -1,7 +1,22 @@
 import { CustomEvent } from '../core/CustomEventEmitter';
+import { Transfer } from '../core/Transfer';
 
-export interface UploadProgress {
-    totalBytes: number;
+export interface UploadProgressEventInput {
+    transfer: {
+        id: string;
+        status: string;
+        region: string;
+        transferUrl: string;
+        uploadState: string;
+        availabilityEndDate: string;
+        availabilityDuration: number;
+        availabilityStartDate: string;
+        preview: string;
+        created: string;
+        modified: string;
+        size: number;
+        filesNumber: number;
+    };
     uploadedBytes: number;
     percent: number;
     speed: number;
@@ -10,16 +25,30 @@ export interface UploadProgress {
 }
 export class UploadProgressEvent implements CustomEvent {
     public name = 'progress';
+    public transfer: {
+        id: string;
+        status: string;
+        region: string;
+        transferUrl: string;
+        uploadState: string;
+        availabilityEndDate: string;
+        availabilityDuration: number;
+        availabilityStartDate: string;
+        preview: string;
+        created: string;
+        modified: string;
+        size: number;
+        filesNumber: number;
+    };
     public lastUploadProgressEvent?: UploadProgressEvent;
-    public totalBytes: number;
     public uploadedBytes: number;
     public percent: number;
     public speed: number;
     public estimatedTime: number;
     public remainingTime: number;
 
-    constructor({ totalBytes, uploadedBytes, percent, speed, estimatedTime, remainingTime }: UploadProgress) {
-        this.totalBytes = totalBytes;
+    constructor({ transfer, uploadedBytes, percent, speed, estimatedTime, remainingTime }: UploadProgressEventInput) {
+        this.transfer = transfer;
         this.uploadedBytes = uploadedBytes;
         this.percent = percent;
         this.speed = speed;
@@ -27,13 +56,13 @@ export class UploadProgressEvent implements CustomEvent {
         this.remainingTime = remainingTime;
     }
 
-    get data(): UploadProgress {
+    get data() {
         return {
             speed: this.speed,
             estimatedTime: this.estimatedTime,
             remainingTime: this.remainingTime,
             percent: this.percent,
-            totalBytes: this.totalBytes,
+            totalBytes: this.transfer.size,
             uploadedBytes: this.uploadedBytes,
         }
     }

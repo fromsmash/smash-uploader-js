@@ -1,7 +1,6 @@
 import { CreateFile } from './CreateFile';
 import { CreateParts } from './CreateParts';
 import { CreateTransfer } from './CreateTransfer';
-import { GetFile } from './GetFile';
 import { LockTransfer } from './LockTransfer';
 import { UpdateFile } from './UpdateFile';
 import { UpdateParts } from './UpdateParts';
@@ -14,4 +13,3 @@ export type Task = CreateTransfer
     | UpdateParts
     | UpdateFile
     | LockTransfer
-    | GetFile;

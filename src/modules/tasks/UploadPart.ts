@@ -1,4 +1,4 @@
-import { UploadTransferFilePartInput, UploadTransferFilePartOutput } from '@smash-sdk/transfer/10-2019/types/UploadTransferFilePart/UploadTransferFilePart';
+import { UploadTransferFilePartInput, UploadTransferFilePartOutput } from '@smash-sdk/transfer/10-2019';
 import fs from 'fs';
 import { SDKError, UploadProgressEvent } from '@smash-sdk/core';
 import { Context } from '../../core/Context';
@@ -7,19 +7,19 @@ import { Part } from '../../core/Part';
 import { Parts } from '../../core/Parts';
 import { Transfer } from '../../core/Transfer';
 import { TaskError } from '../../errors/TaskError';
-import { UploaderError } from '../../helpers/errors';
 import { isNode } from '../../helpers/isNode';
 import { AbstractTask } from './AbstractTask';
 import { CreateParts } from './CreateParts';
 import { Task } from './Task';
 import { UpdateFile } from './UpdateFile';
 import { UpdateParts } from './UpdateParts';
+import { UnsupportedFileSource, FileReaderNotFoundError, FileReaderSecurityError, FileReaderNotReadableError, FileReaderUnknownError, FileReaderAbortError, FileSystemNotFoundError, FileSystemPermissionDeniedError, FileSystemUnknownError, FileSystemAbortError } from '../../errors/errors';
+import { UploaderError } from '../../errors/UploaderError';
 
 export class UploadPart extends AbstractTask<Task> {
     private transfer: Transfer;
     private file: FileItem;
     private part: Part;
-    callback?: (/* FIX ME */) => void;
     private response!: UploadTransferFilePartOutput;
 
     protected readonly sdkFatalErrors: typeof SDKError[] = [
@@ -71,8 +71,20 @@ export class UploadPart extends AbstractTask<Task> {
         this.context.transferSdk.errors.UploadTransferFilePartError.ServiceUnavailableError,
         this.context.transferSdk.errors.UploadTransferFilePartError.UnexpectedContentError,
         this.context.transferSdk.errors.UploadTransferFilePartError.UserKeyMustBeSpecifiedError,
-        UploaderError,
     ];
+
+    protected readonly nativeFatalErrors: Array<typeof UploaderError> = [
+        FileSystemNotFoundError,
+        FileSystemPermissionDeniedError,
+        FileSystemUnknownError,
+        FileReaderNotFoundError,
+        FileSystemAbortError,
+        FileReaderSecurityError,
+        FileReaderNotReadableError,
+        FileReaderUnknownError,
+        FileReaderAbortError,
+        UnsupportedFileSource,
+    ]
 
     constructor(context: Context, file: FileItem, part: Part) {
         super(context);
@@ -183,7 +195,6 @@ export class UploadPart extends AbstractTask<Task> {
         } else if (this.file.isStandardUploadMode() && this.file.hasEnoughPartsToValidate()) {
             const parts = this.file.getNextPartsToValidate();
             const task = new UpdateParts(this.context, this.file, parts)
-            //context.updatePartsQueue.add(task);
             return task;
         }
         return null;
@@ -192,7 +203,9 @@ export class UploadPart extends AbstractTask<Task> {
     public processError(): TaskError {
         if (this.error) {
             if (this.error.isInstanceOfOneOfTheseErrors(this.sdkFatalErrors)) {
-                this.error.unrecoverableError();
+                this.error.unrecoverableError(new UploaderError(this.error.getError() as SDKError));
+            } else if (this.error.isInstanceOfOneOfTheseErrors(this.nativeFatalErrors)) {
+                this.error.unrecoverableError(this.error.getError() as UploaderError);
             } else if (this.error.getError() instanceof this.context.transferSdk.errors.UploadTransferFilePartError.NetworkError) {
                 this.error.setRecoveryTask(this.error.getTask()); // FIX ME add delay as second optional arg
             } else if (this.executionNumber < this.maxExecutionNumber &&
@@ -212,7 +225,7 @@ export class UploadPart extends AbstractTask<Task> {
             ) {
                 this.retryPart();
             } else {
-                this.error.unrecoverableError();
+                this.error.unrecoverableError(new UploaderError(this.error.getError() as Error));
             }
             return this.error;
         }
@@ -226,11 +239,6 @@ export class UploadPart extends AbstractTask<Task> {
         this.context.createPartsQueue.add(new CreateParts(this.context, this.file, new Parts().add(this.part)));
     }
 
-    onProgress(callback: (/* FIX ME */) => void): UploadPart {
-        this.callback = callback;
-        return this;
-    }
-
     getContent(file: FileItem, part: Part): Promise<string | Buffer | ArrayBuffer> {
         return new Promise(async (resolve, reject) => {
             try {
@@ -239,15 +247,16 @@ export class UploadPart extends AbstractTask<Task> {
                     if (typeof originalFile === 'string') {
                         const content = await this.getContentFromPath(originalFile, part);
                         resolve(content);
+                    } else {
+                        reject(new UnsupportedFileSource(`Unsupported file source. Expected 'string' as file patg but got ${typeof originalFile} instead.`));
                     }
                 } else if (originalFile instanceof File) {
                     const content = await this.getContentFromFile(originalFile, part);
                     resolve(content);
                 } else {
-                    // FIX ME What to do ?
-                    throw new UploaderError("Unsupported file type.");
+                    throw new UnsupportedFileSource("Unsupported file source .");
                 }
-            } catch (error) {
+            } catch (error: unknown) {
                 reject(error);
             }
         });
@@ -258,17 +267,78 @@ export class UploadPart extends AbstractTask<Task> {
             try {
                 const blob = originalFile.slice(part.startIndex, part.startIndex! + part.lengthToRead!); // FIX ME "!"
                 const reader = new FileReader();
-                reader.onerror = error => reject(error); // FIX ME improve error management
-                reader.onabort = error => reject(error);// FIX ME is this ok to reject if abort?
-                reader.onload = (onloadEvent: ProgressEvent<FileReader>) => {
-                    if (onloadEvent.target?.result) { //FIX ME this can be empty?????
-                        resolve(onloadEvent.target.result);//FIX ME
+                reader.onerror = (error: any) => {
+                    if (error) {
+                        switch (error.name) {
+                            case 'NotFoundError':
+                                reject(new FileReaderNotFoundError({
+                                    message: `The file '${originalFile.name}' could not be found`,
+                                    details: {
+                                        name: "file",
+                                        primary: originalFile.name,
+                                    }
+                                }));
+                                break;
+                            case 'SecurityError':
+                                reject(new FileReaderSecurityError({
+                                    message: `The file '${originalFile.name}' cannot be accessed due to security restrictions`,
+                                    details: {
+                                        name: "file",
+                                        primary: originalFile.name,
+                                    }
+                                }));
+                                break;
+                            case 'NotReadableError':
+                                reject(new FileReaderNotReadableError({
+                                    message: `The file '${originalFile.name}' is not readable or the user has denied permission`,
+                                    details: {
+                                        name: "file",
+                                        primary: originalFile.name,
+                                    }
+                                }));
+                                break;
+                            default:
+                                reject(new FileReaderUnknownError({
+                                    message: `An unknown error occurred while reading the file '${originalFile.name}'`,
+                                    details: {
+                                        name: "file",
+                                        primary: originalFile.name,
+                                    }
+                                }));
+                                break;
+                        };
                     } else {
-                        reject(new UploaderError('Failed to read file'));//FIX ME
+                        reject(new FileReaderUnknownError({
+                            message: `An unknown error occurred while reading the file '${originalFile.name}'`,
+                            details: {
+                                name: "file",
+                                primary: originalFile.name,
+                            }
+                        }));
+                    };
+                }
+                reader.onabort = () => reject(new FileReaderAbortError({
+                    message: `The file reading was aborted for file '${originalFile.name}'`,
+                    details: {
+                        name: "file",
+                        primary: originalFile.name,
+                    }
+                }));
+                reader.onload = (onloadEvent: ProgressEvent<FileReader>) => {
+                    if (onloadEvent.target?.result) {
+                        resolve(onloadEvent.target.result); // FIX ME
+                    } else {
+                        reject(new FileReaderUnknownError({
+                            message: `An unknown error occurred while reading the file '${originalFile.name}'`,
+                            details: {
+                                name: "file",
+                                primary: originalFile.name,
+                            }
+                        }));
                     }
                 };
                 reader.readAsArrayBuffer(blob);
-            } catch (error) {
+            } catch (error: unknown) {
                 reject(error);
             }
         });
@@ -277,17 +347,52 @@ export class UploadPart extends AbstractTask<Task> {
     private getContentFromPath(originalFile: string, part: Part): Promise<string | Buffer> {
         return new Promise((resolve, reject) => {
             try {
-                const end = part.lengthToRead! > 0 ? part.startIndex! + part.lengthToRead! - 1 : 0;
-                const readStream = fs.createReadStream(originalFile, { start: part.startIndex, end }); // FIX ME "!"
+                const end = part.lengthToRead! > 0 ? part.startIndex! + part.lengthToRead! - 1 : 0; // FIX ME "!"
+                const readStream = fs.createReadStream(originalFile, { start: part.startIndex, end });
                 let blob = Buffer.from("");
-                readStream.on('error', error => reject(error)); // FIX ME improve error management
+                readStream.on('error', (error: NodeJS.ErrnoException) => { // We shoud
+                    if (error.code === 'ENOENT') {
+                        reject(new FileSystemNotFoundError({
+                            message: `File not found: ${originalFile}`,
+                            details: {
+                                name: "file",
+                                primary: originalFile,
+                            }
+                        }));
+                    } else if (error.code === 'EACCES') {
+                        reject(new FileSystemPermissionDeniedError({
+                            message: `Permission denied: ${originalFile}`,
+                            details: {
+                                name: "file",
+                                primary: originalFile,
+                            }
+                        }));
+                    } else {
+                        reject(new FileSystemUnknownError({
+                            message: `An error occurred while reading file: ${originalFile}`,
+                            details: {
+                                name: "file",
+                                primary: originalFile,
+                            }
+                        }));
+                    }
+                });
                 readStream.on('data', (chunk) => {
                     blob = Buffer.concat([blob, chunk as Buffer]);
+                });
+                readStream.on('abort', () => {
+                    reject(new FileSystemAbortError({
+                        message: `File read operation was aborted: ${originalFile}`,
+                        details: {
+                            name: "file",
+                            primary: originalFile,
+                        }
+                    }));
                 });
                 readStream.on('end', () => {
                     resolve(blob);
                 });
-            } catch (error) {
+            } catch (error: unknown) {
                 reject(error);
             }
         });
