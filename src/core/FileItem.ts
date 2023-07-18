@@ -12,6 +12,7 @@ import {
     GetTeamTransferFileOutput,
     GetTransferFileOutput,
 } from '@smash-sdk/transfer/07-2020';
+import { FileSystemNotFoundError, UnsupportedFileTypeError } from '../errors/errors';
 
 
 export enum UploadeMode {
@@ -22,7 +23,8 @@ export class FileItem {
     id!: string;
     size: number;
     name: string;
-    originalFile: File | string;
+    originalFile: File | string | undefined;
+    originalContent: string | Buffer | undefined;
     partsToCreate: Parts = new Parts();
     partsToUpload: Parts = new Parts();
     partsToComplete: Parts = new Parts();
@@ -37,27 +39,49 @@ export class FileItem {
     maxInlineParts!: number;
     //FIX ME Manage file state ? 'Started' 'Processing' 'Complete' ... ?
 
-    constructor(fileItem: File | string | { name: string, file: File | string }) {
-        const { name, file } = this.processFileAndName(fileItem);
-        if (isNode() && typeof file === 'string') {
-            this.name = name;
-            try {
-                const { size } = fs.statSync(file);
-                this.size = size;
-            } catch (error) {
-                throw new Error("ENOENT: No such file or directory " + file);//FIX ME improve this error
+    constructor(fileItem: File | string | { name: string, file: File | string } | { name: string, content: string | Buffer }) {
+        const processedFile = this.processFileAttributes(fileItem);
+        if ('file' in processedFile) {
+            const { name, file } = processedFile;
+            if (isNode() && typeof file === 'string') {
+                this.name = name;
+                try {
+                    const { size } = fs.statSync(file);
+                    this.size = size;
+                } catch (error) {
+                    throw new FileSystemNotFoundError(`ENOENT: No such file or directory for file : ${file}`);
+                }
+                this.originalFile = file;
+            } else if (file instanceof File) {
+                this.name = name;
+                this.size = file.size;
+                this.originalFile = file;
+            } else {
+                throw new UnsupportedFileTypeError('Unsupported file type.');
             }
-            this.originalFile = file;
-        } else if (file instanceof File) {
+        } else if ('content' in processedFile) {
+            const { name, content } = processedFile;
             this.name = name;
-            this.size = file.size;
-            this.originalFile = file;
+            if (typeof content === 'string' || Buffer.isBuffer(content)) {
+                this.size = content.length;
+            } else {
+                throw new UnsupportedFileTypeError('Unsupported file type.');
+            }
+            this.originalContent = content;
         } else {
-            throw new Error('Unsuported file type');//FIX ME TODO create a real error here, improve this
+            throw new UnsupportedFileTypeError('Unsupported file type.');
         }
     }
 
-    private isComplexFile(file: unknown): file is { name: string, file: File | string } {
+    private isComplexFileWithContent(file: unknown): file is { name: string, content: File | string } {
+        if (file && typeof file === 'object' && 'name' in file && 'content' in file) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    private isComplexFileWithPath(file: unknown): file is { name: string, file: File | string } {
         if (file && typeof file === 'object' && 'name' in file && 'file' in file) {
             return true;
         } else {
@@ -65,14 +89,24 @@ export class FileItem {
         }
     }
 
-    private processFileAndName(file: File | string | { name: string, file: File | string }): { name: string, file: File | string } {
-        if (this.isComplexFile(file)) {
+    private isInlinedFileContentSupported(content: unknown): content is string | Buffer {
+        return typeof content === 'string' || Buffer.isBuffer(content);
+    }
+
+    private processFileAttributes(file: File | string | { name: string, file: File | string } | { name: string, content: string | Buffer }): { name: string, file: File | string } | { name: string, content: string | Buffer } {
+        if (this.isComplexFileWithContent(file)) {
+            if (isNode() && file.content && this.isInlinedFileContentSupported(file.content)) {
+                return { name: file.name, content: file.content };
+            } else {
+                throw new UnsupportedFileTypeError(`Unsupported file type for file ${file.name}`);
+            }
+        } else if (this.isComplexFileWithPath(file)) {
             if (isNode() && typeof file.file === 'string') {
                 return { name: file.name, file: file.file };
             } else if (file.file instanceof File) {
                 return { name: file.name, file: file.file };
             } else {
-                throw new Error('Unsuported file type');
+                throw new UnsupportedFileTypeError(`Unsupported file type for file ${file.name}`);
             }
         } else {
             if (isNode() && typeof file === 'string') {
@@ -81,7 +115,7 @@ export class FileItem {
             } else if (file instanceof File) {
                 return { name: file.name, file };
             } else {
-                throw new Error('Unsuported file type');
+                throw new UnsupportedFileTypeError('Unsupported file type.');
             }
         }
     }

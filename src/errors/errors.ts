@@ -1,7 +1,11 @@
 import { UploaderError } from "./UploaderError";
 
-export class UnsupportedFileSource extends UploaderError {
+export class UnsupportedFileSourceError extends UploaderError {
     name = "UnsupportedFileSourceError";
+}
+
+export class UnsupportedFileTypeError extends UploaderError {
+    name = "UnsupportedFileTypeError";
 }
 export class FileSystemNotFoundError extends UploaderError {
     name = "FileSystemNotFoundError";

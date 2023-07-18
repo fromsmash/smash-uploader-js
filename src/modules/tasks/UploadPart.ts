@@ -1,20 +1,20 @@
+import { SDKError, UploadProgressEvent } from '@smash-sdk/core';
 import { UploadTransferFilePartInput, UploadTransferFilePartOutput } from '@smash-sdk/transfer/10-2019';
 import fs from 'fs';
-import { SDKError, UploadProgressEvent } from '@smash-sdk/core';
 import { Context } from '../../core/Context';
 import { FileItem } from '../../core/FileItem';
 import { Part } from '../../core/Part';
 import { Parts } from '../../core/Parts';
 import { Transfer } from '../../core/Transfer';
+import { FileReaderAbortError, FileReaderNotFoundError, FileReaderNotReadableError, FileReaderSecurityError, FileReaderUnknownError, FileSystemAbortError, FileSystemNotFoundError, FileSystemPermissionDeniedError, FileSystemUnknownError, UnsupportedFileSourceError, UnsupportedFileTypeError } from '../../errors/errors';
 import { TaskError } from '../../errors/TaskError';
+import { UploaderError } from '../../errors/UploaderError';
 import { isNode } from '../../helpers/isNode';
 import { AbstractTask } from './AbstractTask';
 import { CreateParts } from './CreateParts';
 import { Task } from './Task';
 import { UpdateFile } from './UpdateFile';
 import { UpdateParts } from './UpdateParts';
-import { UnsupportedFileSource, FileReaderNotFoundError, FileReaderSecurityError, FileReaderNotReadableError, FileReaderUnknownError, FileReaderAbortError, FileSystemNotFoundError, FileSystemPermissionDeniedError, FileSystemUnknownError, FileSystemAbortError } from '../../errors/errors';
-import { UploaderError } from '../../errors/UploaderError';
 
 export class UploadPart extends AbstractTask<Task> {
     private transfer: Transfer;
@@ -83,7 +83,8 @@ export class UploadPart extends AbstractTask<Task> {
         FileReaderNotReadableError,
         FileReaderUnknownError,
         FileReaderAbortError,
-        UnsupportedFileSource,
+        UnsupportedFileSourceError,
+        UnsupportedFileTypeError,
     ]
 
     constructor(context: Context, file: FileItem, part: Part) {
@@ -243,18 +244,24 @@ export class UploadPart extends AbstractTask<Task> {
         return new Promise(async (resolve, reject) => {
             try {
                 const originalFile = file.originalFile;
+                const originalContent = file.originalContent;
+                if (originalContent && (typeof originalContent === 'string' || Buffer.isBuffer(originalContent))) {
+                    resolve(originalContent);
+                } else {
+                    reject(new UnsupportedFileSourceError(`Unsupported inlined file content. Expected 'string' or 'Buffer' as file content but got ${typeof originalContent} instead.`));
+                }
                 if (isNode()) {
                     if (typeof originalFile === 'string') {
                         const content = await this.getContentFromPath(originalFile, part);
                         resolve(content);
                     } else {
-                        reject(new UnsupportedFileSource(`Unsupported file source. Expected 'string' as file patg but got ${typeof originalFile} instead.`));
+                        reject(new UnsupportedFileSourceError(`Unsupported file source. Expected 'string' as file path but got ${typeof originalFile} instead.`));
                     }
                 } else if (originalFile instanceof File) {
                     const content = await this.getContentFromFile(originalFile, part);
                     resolve(content);
                 } else {
-                    throw new UnsupportedFileSource("Unsupported file source .");
+                    throw new UnsupportedFileSourceError("Unsupported file source.");
                 }
             } catch (error: unknown) {
                 reject(error);

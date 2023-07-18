@@ -63,7 +63,8 @@ import {
     InvalidSubscriptionError,
     MissingReceiversError,
     MissingSenderError,
-    UnsupportedFileSource,
+    UnsupportedFileSourceError,
+    UnsupportedFileTypeError,
     UsageExceededError,
     NetworkError,
 } from './errors/errors';
@@ -93,7 +94,8 @@ export const errors = {
     InvalidSubscriptionError,
     MissingReceiversError,
     MissingSenderError,
-    UnsupportedFileSource,
+    UnsupportedFileSourceError,
+    UnsupportedFileTypeError,
     UsageExceededError,
     NetworkError,
 }
