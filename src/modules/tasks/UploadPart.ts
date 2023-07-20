@@ -245,12 +245,14 @@ export class UploadPart extends AbstractTask<Task> {
             try {
                 const originalFile = file.originalFile;
                 const originalContent = file.originalContent;
-                if (originalContent && (typeof originalContent === 'string' || Buffer.isBuffer(originalContent))) {
-                    resolve(originalContent);
-                } else {
-                    reject(new UnsupportedFileSourceError(`Unsupported inlined file content. Expected 'string' or 'Buffer' as file content but got ${typeof originalContent} instead.`));
-                }
-                if (isNode()) {
+
+                if (originalContent) {
+                    if (typeof originalContent === 'string' || Buffer.isBuffer(originalContent)) {
+                        resolve(originalContent);
+                    } else {
+                        reject(new UnsupportedFileSourceError(`Unsupported inlined file content. Expected 'string' or 'Buffer' as file content but got ${typeof originalContent} instead.`));
+                    }
+                } else if (isNode()) {
                     if (typeof originalFile === 'string') {
                         const content = await this.getContentFromPath(originalFile, part);
                         resolve(content);
