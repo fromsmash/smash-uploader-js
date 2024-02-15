@@ -1,20 +1,10 @@
 import { CustomEvent } from '../core/CustomEventEmitter';
+import { TransferBaseEventData } from '../interface/Transfer';
 
 export interface FinishedEventInput {
-    transfer: {
-        id: string;
-        status: string;
-        region: string;
-        transferUrl: string;
-        uploadState: string;
-        availabilityEndDate: string;
-        availabilityDuration: number;
-        availabilityStartDate: string;
-        preview: string;
-        created: string;
-        modified: string;
-        size: number;
-        filesNumber: number;
+    transfer: TransferBaseEventData & {
+        availabilityEndDate: string,
+        availabilityStartDate: string,
     };
     finishedDate: string;
     startedDate: string;
@@ -22,59 +12,13 @@ export interface FinishedEventInput {
 
 export class FinishedEvent implements CustomEvent {
     public name = 'finished';
-    public transfer: {
-        id: string;
-        status: string;
-        region: string;
-        transferUrl: string;
-        uploadState: string;
-        availabilityEndDate: string;
-        availabilityDuration: number;
-        availabilityStartDate: string;
-        preview: string;
-        created: string;
-        modified: string;
-        size: number;
-        filesNumber: number;
-    };
+    public transfer: TransferBaseEventData;
     public duration: number;
     public startedDate: string;
     public finishedDate: string;
 
-    constructor({
-        transfer: {
-            id,
-            status,
-            region,
-            transferUrl,
-            uploadState,
-            availabilityEndDate,
-            availabilityDuration,
-            availabilityStartDate,
-            preview,
-            created,
-            modified,
-            size,
-            filesNumber,
-        },
-        startedDate,
-        finishedDate
-    }: FinishedEventInput) {
-        this.transfer = {
-            id,
-            status,
-            region,
-            transferUrl,
-            uploadState,
-            availabilityEndDate,
-            availabilityDuration,
-            availabilityStartDate,
-            preview,
-            created,
-            modified,
-            size,
-            filesNumber,
-        };
+    constructor({ transfer, startedDate, finishedDate }: FinishedEventInput) {
+        this.transfer = { ...transfer };
         this.startedDate = startedDate;
         this.finishedDate = finishedDate;
         this.duration = new Date(this.finishedDate).getTime() - new Date(this.startedDate).getTime();

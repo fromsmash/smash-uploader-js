@@ -1,47 +1,16 @@
 import { CustomEvent } from '../core/CustomEventEmitter';
+import { TransferBaseEventData } from '../interface/Transfer';
 
 export interface QueuedEventInput {
-    transfer: {
-        id: string;
-        status: string;
-        region: string;
-        transferUrl: string;
-        uploadState: string;
-        availabilityEndDate: string;
-        availabilityDuration: number;
-        availabilityStartDate: string;
-        queuedUntil: string;
-        preview: string;
-        created: string;
-        modified: string;
-        size: number;
-        filesNumber: number;
-    };
+    transfer: TransferBaseEventData;
 }
 
 export class QueuedEvent implements CustomEvent {
     public name = 'queued';
-    public transfer: {
-        id: string;
-        status: string;
-        region: string;
-        transferUrl: string;
-        uploadState: string;
-        availabilityEndDate: string;
-        availabilityDuration: number;
-        availabilityStartDate: string;
-        queuedUntil: string;
-        preview: string;
-        created: string;
-        modified: string;
-        size: number;
-        filesNumber: number;
-    };
+    public transfer: TransferBaseEventData;
 
-    constructor({
-        transfer,
-    }: QueuedEventInput) {
-        this.transfer = transfer;
+    constructor({ transfer }: QueuedEventInput) {
+        this.transfer = { ...transfer };
     }
 
     get data() {

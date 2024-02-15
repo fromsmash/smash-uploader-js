@@ -2,22 +2,22 @@ import { Context } from './core/Context';
 import { CustomEventEmitter } from './core/CustomEventEmitter';
 import { TaskError } from './errors/TaskError';
 import { UploaderError } from './errors/UploaderError';
-import { CanceledEvent, CanceledEventInput } from './events/CanceledEvent';
+import { CanceledEvent } from './events/CanceledEvent';
 import { ChangesEvent } from './events/ChangesEvent';
 import { ConnectionAvailableEvent } from './events/ConnectionAvailableEvent';
 import { ConnectionBusyEvent } from './events/ConnectionBusyEvent';
-import { FinishedEvent, FinishedEventInput } from './events/FinishedEvent';
-import { FinishingEvent, FinishingEventInput } from './events/FinishingEvent';
-import { QueuedEvent, QueuedEventInput } from './events/QueuedEvent';
-import { StartedEvent, StartedEventInput } from './events/StartedEvent';
-import { StartingEvent, StartingEventInput } from './events/StartingEvent';
-import { StatusEvent, StatusEventInput } from './events/StatusEvent';
+import { FinishedEvent } from './events/FinishedEvent';
+import { FinishingEvent } from './events/FinishingEvent';
+import { QueuedEvent } from './events/QueuedEvent';
+import { StartedEvent } from './events/StartedEvent';
+import { StartingEvent } from './events/StartingEvent';
+import { StatusEvent } from './events/StatusEvent';
 import { UploadErrorEvent } from './events/UploadErrorEvent';
 import { UploadProgressEvent, UploadProgressEventInput } from './events/UploadProgressEvent';
 import { ConnectionEvents, UploaderStatus } from './globals/constant';
 import { UploaderEvent } from './interface/Event';
 import { UpdateInput, UploadInput } from './interface/Input';
-import { UpdateOutput, UploadCanceledOutput, UploadCompleteOutput } from './interface/Output';
+import { UpdateOutput, UploadCanceledOutput, UploadCompleteOutput, UploadPausedOutput, UploadResumedOutput } from './interface/Output';
 import { Preview } from './interface/Transfer';
 import { UploaderParameters } from './interface/UploaderParameters';
 import { Connection } from './modules/handlers/Connection';
@@ -39,35 +39,45 @@ export {
 } from './events';
 
 import {
+    CustomUrlAlreadyInUseError,
+    EmailNotAllowedError,
     EmptyFileListError,
     FileReaderAbortError,
+    FileReaderNotFoundError,
     FileReaderNotReadableError,
     FileReaderSecurityError,
     FileReaderUnknownError,
-    FileReaderNotFoundError,
-    InvalidParameterError,
-    CustomUrlAlreadyInUseError,
-    TransferAlreadyFinishedError,
-    TransferAlreadyStartedError,
-    TransferIsInQueueError,
-    UnauthorizedError,
-    UnvalidTokenError,
-    PasswordRequiredError,
-    EmailNotAllowedError,
     FileSystemAbortError,
     FileSystemNotFoundError,
     FileSystemPermissionDeniedError,
     FileSystemUnknownError,
     InvalidAvailabilityDurationError,
     InvalidDeliveryError,
+    InvalidParameterError,
     InvalidSubscriptionError,
     MissingReceiversError,
     MissingSenderError,
+    NetworkError,
+    PasswordRequiredError,
+    TransferAlreadyCanceledError,
+    TransferAlreadyCancelingError,
+    TransferAlreadyFinishedError,
+    TransferAlreadyFinishingError,
+    TransferAlreadyPausedError,
+    TransferAlreadyQueuedError,
+    TransferAlreadyStartedError,
+    TransferAlreadyStartingError,
+    TransferIsInErrorError,
+    TransferNotFoundError,
+    UnauthorizedError,
+    UnknownError,
     UnsupportedFileSourceError,
     UnsupportedFileTypeError,
-    UsageExceededError,
-    NetworkError,
+    UnvalidTokenError,
+    UsageExceededError
 } from './errors/errors';
+import { PausedEvent } from './events/PausedEvent';
+import { QueueFinished } from './events/QueueFinished';
 
 export const errors = {
     EmptyFileListError,
@@ -78,9 +88,6 @@ export const errors = {
     FileReaderNotFoundError,
     InvalidParameterError,
     CustomUrlAlreadyInUseError,
-    TransferAlreadyFinishedError,
-    TransferAlreadyStartedError,
-    TransferIsInQueueError,
     UnauthorizedError,
     UnvalidTokenError,
     PasswordRequiredError,
@@ -98,6 +105,18 @@ export const errors = {
     UnsupportedFileTypeError,
     UsageExceededError,
     NetworkError,
+    TransferAlreadyQueuedError,
+    TransferAlreadyStartingError,
+    TransferAlreadyCanceledError,
+    TransferAlreadyCancelingError,
+    TransferAlreadyFinishedError,
+    TransferAlreadyFinishingError,
+    TransferAlreadyPausedError,
+    TransferAlreadyStartedError,
+    TransferIsInErrorError,
+    TransferNotFoundError,
+    UnknownError,
+    UploaderError,//TODO FIX ME good idea to put it here?
 }
 
 export { UploaderError } from './errors/UploaderError';
@@ -111,10 +130,10 @@ export class SmashUploader extends CustomEventEmitter {
     private connections: Connections;
     private sequencer: Sequencer;
     private context: Context;
-    private transferPromise!: { resolve: (value: UploadCompleteOutput | UploadCanceledOutput) => void, reject: (error: UploaderError) => void };
-    private progressTimer?: NodeJS.Timer;
-    private speedTimer?: NodeJS.Timer;
-    private queueTimer?: NodeJS.Timer;
+    private uploadPromise!: { resolve: (value: UploadCompleteOutput | UploadCanceledOutput) => void, reject: (error: UploaderError) => void };
+    private progressTimer?: NodeJS.Timeout;
+    private speedTimer?: NodeJS.Timeout;
+    private queueTimer?: NodeJS.Timeout;
 
     constructor(uploaderParameters: UploaderParameters) {
         super();
@@ -122,8 +141,6 @@ export class SmashUploader extends CustomEventEmitter {
         this.connections = new Connections();
         this.sequencer = new Sequencer();
         this.bindConnections();
-        //FIX ME call a function reset() witch recreate everything
-        //this.reset(); FIX ME this is not working....
     }
 
     private bindConnections(): SmashUploader {
@@ -137,7 +154,6 @@ export class SmashUploader extends CustomEventEmitter {
         this.connections.off();
         this.connections = new Connections();
         this.bindConnections();
-        //TODO create reset context
         this.context.reset();
         return this;
     }
@@ -148,48 +164,86 @@ export class SmashUploader extends CustomEventEmitter {
     }
 
     private emitStatus() {
-        const statusEvent = new StatusEvent(this.context as StatusEventInput);
+        const statusEvent = new StatusEvent(this.context);
         this.emit(statusEvent.name, statusEvent);
         this.emitChanges(statusEvent);
     }
 
     private emitStarting() {
-        this.context.starting();
+        const context = this.context.starting();
         this.emitStatus();
-        const startingEvent = new StartingEvent(this.context as StartingEventInput);
+        const startingEvent = new StartingEvent(context);
+        this.emit(startingEvent.name, startingEvent);
         this.emitChanges(startingEvent);
     }
 
     private emitStarted() {
-        this.context.started();
+        const context = this.context.started();
         this.emitStatus();
-        const startedEvent = new StartedEvent(this.context as StartedEventInput);
+        const startedEvent = new StartedEvent(context);
         this.emit(startedEvent.name, startedEvent);
         this.emitChanges(startedEvent);
     }
 
+    private startQueueTimer() {
+        this.queueTimer = setInterval(() => {
+            if (this.context.localEndOfQueueTimestamp! < Date.now()) {
+                this.emitQueueFinished();
+                clearInterval(this.queueTimer);
+            }
+        }, 1000);
+    }
+
     private emitQueue() {
-        this.context.queued();
+        const context = this.context.queued();
         this.emitStatus();
-        const queuedEvent = new QueuedEvent(this.context as QueuedEventInput);
+        const queuedEvent = new QueuedEvent(context);
         this.emit(queuedEvent.name, queuedEvent);
         this.emitChanges(queuedEvent);
     }
 
+    private emitQueueFinished() {
+        const context = this.context.queueFinished();
+        this.emitStatus();
+        const queueFinishedEvent = new QueueFinished(context);
+        this.emit(queueFinishedEvent.name, queueFinishedEvent);
+        this.emitChanges(queueFinishedEvent);
+    }
+
+    private emitPaused() {
+        const context = this.context.paused();
+        this.emitStatus();
+        const pausedEvent = new PausedEvent(context);
+        this.emit(pausedEvent.name, pausedEvent);
+        this.emitChanges(pausedEvent);
+    }
+
     private emitProgress() {
+        //TODO getProgressContext?
+
         const progressEvent = new UploadProgressEvent(this.context as UploadProgressEventInput);
         this.emit(progressEvent.name, progressEvent);
         this.emitChanges(progressEvent);
     }
 
-    private emitFinished() {
-        this.context.finished();
-        this.resetTimers();
+    private emitFinishing() {
+        this.emitProgress();
+        const context = this.context.finishing();
         this.emitStatus();
-        const finishedEvent = new FinishedEvent(this.context as FinishedEventInput);
+        const finishingEvent = new FinishingEvent(context);
+        this.emit(finishingEvent.name, finishingEvent);
+        this.emitChanges(finishingEvent);
+    }
+
+    private emitFinished() {
+        const context = this.context.finished();
+        this.emitStatus();
+        const finishedEvent = new FinishedEvent(context);
         this.emit(finishedEvent.name, finishedEvent);
         this.emitChanges(finishedEvent);
-        this.transferPromise.resolve({
+        this.resetTimers();
+        this.uploadPromise.resolve({//TODO fix create function to generate this object
+            status: this.context.getStatus(),
             transfer: {
                 id: this.context.transfer!.id,
                 status: this.context.transfer!.status,
@@ -208,38 +262,15 @@ export class SmashUploader extends CustomEventEmitter {
         });
     }
 
-    private emitFinishing() {
-        this.context.finishing();
-        this.emitStatus();
-        const finishingEvent = new FinishingEvent(this.context as FinishingEventInput);
-        this.emit(finishingEvent.name, finishingEvent);
-        this.emitChanges(finishingEvent);
-    }
-
-    private emitError(error: unknown) {
-        this.context.error();
-        this.emitStatus()
-        if (error instanceof TaskError) {
-            const errorEvent = new UploadErrorEvent({ error: error.getPublicError() });
-            this.emit(errorEvent.name, errorEvent);
-            this.emitChanges(errorEvent);
-            this.transferPromise.reject(error.getPublicError() as UploaderError);
-        } else if (error instanceof Error) {
-            this.transferPromise.reject(new UploaderError(error));
-        } else {
-            this.transferPromise.reject(new UploaderError('Unknown error'));
-        }
-        this.reset();
-    }
-
     private emitCanceled() {
-        this.context.cancel();
+        const context = this.context.cancel();
         this.emitStatus();
         this.resetTimers();
-        const canceledEvent = new CanceledEvent(this.context as CanceledEventInput);
+        const canceledEvent = new CanceledEvent(context);
         this.emit(canceledEvent.name, canceledEvent);
         this.emitChanges(canceledEvent);
-        this.transferPromise.resolve({
+        this.uploadPromise.resolve({//TODO fix create function to generate this object
+            status: this.context.getStatus(),
             transfer: this.context.transfer ? {
                 id: this.context.transfer.id,
                 status: this.context.transfer.status,
@@ -259,10 +290,20 @@ export class SmashUploader extends CustomEventEmitter {
         this.reset();
     }
 
-    private emitQueueIfNeeded() {
-        if (this.context?.transfer?.queuedUntil && new Date(this.context.transfer.queuedUntil).getTime() > new Date().getTime()) {
-            this.emitQueue();
+    private emitError(error: unknown) {
+        this.context.error();
+        this.emitStatus()
+        if (error instanceof TaskError) {
+            const errorEvent = new UploadErrorEvent({ error: error.getPublicError() });
+            this.emit(errorEvent.name, errorEvent);
+            this.emitChanges(errorEvent);
+            this.uploadPromise.reject(error.getPublicError() as UploaderError);
+        } else if (error instanceof Error) {
+            this.uploadPromise.reject(new UploaderError(error));
+        } else {
+            this.uploadPromise.reject(new UploaderError('Unknown error'));
         }
+        this.reset();
     }
 
     private startTask(connection: Connection, task: Task): void {
@@ -280,18 +321,27 @@ export class SmashUploader extends CustomEventEmitter {
 
     private processTask(connection: Connection, task: Task): void {
         connection.execute(task).then(processedTask => {
-            //FIX ME check if transfer aborted if yes  ignore the next steps
+            if (this.context.isCanceled() || this.context.isOnError()) {
+                return;
+            }
+
             if (processedTask.isOnError()) {
                 this.handleConnectionError(processedTask);
             } else {
                 const nextTask = processedTask.postProcess(this.context);
+
                 if (processedTask.isFirstTask()) {
-                    this.emitQueueIfNeeded();
                     this.addConnections(this.context.transfer!.parallelConnections);
+                    if (this.context.hasQueue()) {
+                        this.emitQueue();
+                        this.startQueueTimer();
+                    } else {
+                        this.emitStarted();
+                    }
                 } else if (processedTask.isLastTask()) {
                     this.emitFinished();
                 }
-                //FIX ME check if transfer aborted if yes  ignore the next steps
+
                 if (nextTask) {
                     if (nextTask.isLastTask()) {
                         this.emitFinished();
@@ -299,6 +349,9 @@ export class SmashUploader extends CustomEventEmitter {
                         this.startTask(connection, nextTask);
                     }
                 } else {
+                    if (this.context.isPaused()) {
+                        return;
+                    }
                     this.pingConnections();
                 }
             }
@@ -333,19 +386,6 @@ export class SmashUploader extends CustomEventEmitter {
                 this.context.taskQueue.add(recoveryTask);
             }
             this.pingConnections();
-        }
-    }
-
-    private pingConnectionsAroundQueue() {
-        if (this.context?.transfer?.queuedUntil) {
-            const diff = new Date(this.context.transfer.queuedUntil).getTime() - new Date().getTime();
-            if (diff >= -60000 && diff <= 60000) {
-                this.pingConnections();
-                if (this.context.getStatus() !== UploaderStatus.Started) {
-                    this.emitStarted();
-                }
-                this.endQueueTimer();
-            }
         }
     }
 
@@ -387,12 +427,6 @@ export class SmashUploader extends CustomEventEmitter {
         }, 100);
     }
 
-    private startQueueTimer() {
-        this.queueTimer = setInterval(() => {
-            this.pingConnectionsAroundQueue();
-        }, 100);
-    }
-
     private endProgressTimer() {
         clearInterval(this.progressTimer);
     }
@@ -425,20 +459,122 @@ export class SmashUploader extends CustomEventEmitter {
     public upload(params: UploadInput): Promise<UploadCompleteOutput | UploadCanceledOutput> {
         return new Promise((resolve, reject) => {
             try {
-                // FIX ME check if upload already in progress => if yes throw error
-                if (this.context.getStatus() !== UploaderStatus.Pending) {
-                    throw new TransferAlreadyStartedError('Transfer already started');
+                this.uploadPromise = { resolve, reject };
+
+                if (this.context.getStatus() === UploaderStatus.Queued) {
+                    throw new TransferAlreadyQueuedError('Unable to upload, transfer is already in queue.');
                 }
-                this.transferPromise = { resolve, reject };
+
+                if (this.context.getStatus() === UploaderStatus.QueueFinished) {
+                    throw new TransferAlreadyQueuedError('Unable to upload, transfer is already in queue.');
+                }
+
+                if (this.context.getStatus() === UploaderStatus.Starting) {
+                    throw new TransferAlreadyStartingError('Unable to upload, transfer is already starting.');
+                }
+
+                if (this.context.getStatus() === UploaderStatus.Started) {
+                    throw new TransferAlreadyStartedError('Unable to upload, transfer is already started.');
+                }
+
+                if (this.context.getStatus() === UploaderStatus.Finishing) {
+                    throw new TransferAlreadyFinishingError('Unable to upload, transfer is already finishing.');
+                }
+
+                if (this.context.getStatus() === UploaderStatus.Finished) {
+                    throw new TransferAlreadyFinishedError('Unable to upload, transfer is already finished.');
+                }
+
+                if (this.context.getStatus() === UploaderStatus.Canceling) {
+                    throw new TransferAlreadyCancelingError('Unable to upload, transfer is already canceling.');
+                }
+
+                if (this.context.getStatus() === UploaderStatus.Canceled) {
+                    throw new TransferAlreadyCanceledError('Unable to upload, transfer is already canceled.');
+                }
+
+                if (this.context.getStatus() === UploaderStatus.Paused) {
+                    throw new TransferAlreadyPausedError('Unable to upload, transfer is already paused.');
+                }
+
+                if (this.context.getStatus() === UploaderStatus.Error) {
+                    throw new TransferIsInErrorError('Unable to upload, transfer is in error.');
+                }
+
                 if (!params.files.length) {
                     throw new EmptyFileListError('You must add some files to create a Transfer');
                 }
-                this.context.createTransfer(params);
+
                 this.emitStarting();
+                this.context.createTransfer(params);
                 this.startProgressTimer();
                 this.startSpeedTimer();
-                this.startQueueTimer();
                 this.addConnections(this.initiaParallelConnections);
+            } catch (error: unknown) {
+                this.emitError(error);
+            }
+        });
+    }
+
+    public resume(): Promise<UploadResumedOutput> {
+        return new Promise(resolve => {
+            try {
+                if (this.context.isPaused() || this.context.isQueueFinished()) {
+                    this.emitStarted();
+                    this.pingConnections();
+                }
+
+                if (this.context.isQueued()) {
+                    this.emitQueue();
+                }
+                resolve({
+                    status: this.context.getStatus(),
+                    transfer: {
+                        id: this.context.transfer!.id!,
+                        status: this.context.transfer!.status!,
+                        region: this.context.transfer!.region!,
+                        transferUrl: this.context.transfer!.transferUrl!,
+                        uploadState: this.context.transfer!.uploadState!,
+                        availabilityDuration: this.context.transfer!.availabilityDuration!,
+                        preview: this.context.transfer!.preview as Preview,
+                        created: this.context.transfer!.created!,
+                        modified: this.context.transfer!.modified!,
+                        size: this.context.transfer!.size,
+                        filesNumber: this.context.transfer!.filesNumber,
+                        queue: this.context.transfer!.queue,
+                        queuedUntil: this.context.transfer!.queuedUntil,
+                    }
+                });
+            } catch (error: unknown) {
+                this.emitError(error);
+            }
+        });
+    }
+
+    public pause(): Promise<UploadPausedOutput> {
+        return new Promise(resolve => {
+            try {
+                if (this.context.isStarted()) {
+                    this.emitPaused();
+                }
+                resolve({
+                    status: this.context.getStatus(),
+                    transfer: {
+                        id: this.context.transfer!.id!,
+                        status: this.context.transfer!.status!,
+                        region: this.context.transfer!.region!,
+                        transferUrl: this.context.transfer!.transferUrl!,
+                        uploadState: this.context.transfer!.uploadState!,
+                        availabilityDuration: this.context.transfer!.availabilityDuration!,
+                        preview: this.context.transfer!.preview as Preview,
+                        created: this.context.transfer!.created!,
+                        modified: this.context.transfer!.modified!,
+                        size: this.context.transfer!.size,
+                        filesNumber: this.context.transfer!.filesNumber,
+                        queue: this.context.transfer!.queue,
+                        queuedUntil: this.context.transfer!.queuedUntil,
+                    }
+                });
             } catch (error: unknown) {
                 this.emitError(error);
             }
@@ -448,9 +584,34 @@ export class SmashUploader extends CustomEventEmitter {
     public update(params: UpdateInput): Promise<UpdateOutput> {
         return new Promise(async (resolve, reject) => {
             try {
-                if (this.context.isFinished()) {
-                    throw new TransferAlreadyFinishedError('Transfer already finished');
+                if (this.context.getStatus() === UploaderStatus.Pending) {
+                    throw new TransferAlreadyStartingError('Unable to update transfer, upload is pending.');
                 }
+
+                if (this.context.getStatus() === UploaderStatus.Starting) {
+                    throw new TransferAlreadyStartingError('Unable to update transfer, upload is starting.');
+                }
+
+                if (this.context.getStatus() === UploaderStatus.Finishing) {
+                    throw new TransferAlreadyFinishingError('Unable to update transfer, upload is finishing.');
+                }
+
+                if (this.context.getStatus() === UploaderStatus.Finished) {
+                    throw new TransferAlreadyFinishedError('Unable to update transfer, upload is finished.');
+                }
+
+                if (this.context.getStatus() === UploaderStatus.Canceling) {
+                    throw new TransferAlreadyCancelingError('Unable to update transfer, upload is canceling.');
+                }
+
+                if (this.context.getStatus() === UploaderStatus.Canceled) {
+                    throw new TransferAlreadyCanceledError('Unable to update transfer, upload is canceled.');
+                }
+
+                if (this.context.getStatus() === UploaderStatus.Error) {
+                    throw new TransferIsInErrorError('Unable to update transfer, upload is in error.');
+                }
+
                 const updatedTransfer = await this.context.updateTransfer(params);
                 resolve(updatedTransfer);
             } catch (error: unknown) {

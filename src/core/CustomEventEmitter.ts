@@ -30,7 +30,6 @@ export class CustomEventEmitter {
 
     public emit(event: string, data: CustomEvent): CustomEventEmitter {
         if (Object.prototype.hasOwnProperty.call(this.listeners, event)) {
-            //FIX ME use foreach instead
             this.listeners[event].forEach(listener => {
                 listener.call(this, data);
             });

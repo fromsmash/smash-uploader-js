@@ -1,4 +1,4 @@
-import { GetTeamTransferOutput, GetTransferOutput, LockTransferInput, LockTransferOutput } from '@smash-sdk/transfer/10-2019';
+import { GetTeamTransferOutput, GetTransferOutput, LockTransferInput, LockTransferOutput } from '@smash-sdk/transfer/01-2024';
 import { SDKError } from '@smash-sdk/core/dist';
 import { Context } from '../../core/Context';
 import { Transfer } from '../../core/Transfer';
@@ -85,7 +85,7 @@ export class LockTransfer extends AbstractTask<Task> {
                     error instanceof this.context.transferSdk.errors.LockTransferError.InternalServerError ||
                     error instanceof this.context.transferSdk.errors.LockTransferError.BadGatewayError ||
                     error instanceof this.context.transferSdk.errors.LockTransferError.GatewayTimeoutError ||
-                    error instanceof this.context.transferSdk.errors.LockTransferError.NetworkError || 
+                    error instanceof this.context.transferSdk.errors.LockTransferError.NetworkError ||
                     error instanceof this.context.transferSdk.errors.GetTeamTransferError.NotFoundError ||
                     error instanceof this.context.transferSdk.errors.GetTeamTransferError.UnauthorizedError ||
                     error instanceof this.context.transferSdk.errors.GetTeamTransferError.InvalidParameterError ||

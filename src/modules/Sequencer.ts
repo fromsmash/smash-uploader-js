@@ -39,7 +39,7 @@ export class Sequencer {
     }
 
     public evaluateNextTask(context: Context): Task | null {
-        if (context.transfer!.queuedUntil === undefined || (new Date(context.transfer!.queuedUntil as string).getTime() < new Date().getTime())) {
+        if (context?.localEndOfQueueTimestamp === undefined || context?.localEndOfQueueTimestamp < Date.now()) {
             for (const evaluation of this.evaluationOrder) {
                 if (this.hasOne(evaluation, context) && this.evaluateCondition(evaluation, context)) {
                     const nextTask = this.shift(evaluation, context);

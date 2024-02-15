@@ -248,7 +248,7 @@ export class FileItem {
     }
 
     public getNextPartsToValidate(): Parts {
-        const parts = this.partsToComplete.slice(0, this.maxInlineParts - 1);
+        const parts = this.partsToComplete.slice(0, this.maxInlineParts);
         parts.forEach(part => {
             this.partsToComplete.remove(part.id);
             this.completingParts.add(part);

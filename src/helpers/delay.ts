@@ -1,6 +1,6 @@
 const MAX_DELAY = 30000;
 
-export function computeDelay({ executionNumber = 0, backoffEnabled = true, backoffValue = 1000, delay = 1000 }: { executionNumber?: number, backoffEnabled?: boolean, backoffValue?: number, delay?: number } = { executionNumber: 0, backoffEnabled: false, backoffValue: 1000, delay: 1000 }): number {
+export function computeDelay({ executionNumber = 0, backoffEnabled = false, backoffValue = 1000, delay = 1000 }: { executionNumber?: number, backoffEnabled?: boolean, backoffValue?: number, delay?: number } = { executionNumber: 0, backoffEnabled: false, backoffValue: 1000, delay: 1000 }): number {
     if (backoffEnabled) {
         return computeExponentialBackoff({ executionNumber, backoffValue })
     } else {

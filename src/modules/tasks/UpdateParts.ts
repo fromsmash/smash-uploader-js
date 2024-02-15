@@ -1,4 +1,4 @@
-import { UpdateTransferFilePartsInput, UpdateTransferFilePartsOutput } from '@smash-sdk/transfer/10-2019';
+import { UpdateTransferFilePartsInput, UpdateTransferFilePartsOutput } from '@smash-sdk/transfer/01-2024';
 import { SDKError } from '@smash-sdk/core';
 import { Context } from '../../core/Context';
 import { FileItem } from '../../core/FileItem';

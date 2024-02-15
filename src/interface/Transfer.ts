@@ -3,15 +3,22 @@ export type Status = "Uploading" | "Processing" | "Uploaded" | "Deleting" | "Del
 export type Preview = "Full" | "None";
 export type DeliveryType = "Email" | "Link";
 export type UploadState = "Draft" | "Lock";
-export type NotificationType = "All" | "None";
+export type Notification = {
+    sender?: { enabled: boolean },
+    receiver?: { enabled: boolean },
+    link?: { enabled: boolean },
+    download?: { enabled: boolean },
+    noDownload?: { enabled: boolean },
+};
 export type AccessTracking = "Email" | "None";
+export type Language = "en" | "fr" | "it" | "de" | "pt" | "es";
 
 export interface UpdateTransfer {
-    language?: string;
+    language?: Language;
     availabilityDuration?: number;
     title?: string;
     delivery?: {
-        type: DeliveryType;
+        type?: string;
         sender?: {
             name?: string;
             email: string;
@@ -27,7 +34,7 @@ export interface UpdateTransfer {
     };
     preview?: Preview;
     accessTracking?: AccessTracking;
-    notificationType?: NotificationType;
+    notification?: Notification;
     password?: string;
     description?: string;
 }
@@ -39,4 +46,24 @@ export interface CreateTransfer extends UpdateTransfer {
 
 export interface TransferFiles {
     files: File[] | string[] | { name: string, file: File | string }[] | { name: string, content: string | Buffer }[];
+}
+
+export interface TransferBaseEventData {
+    id: string;
+    title?: string;
+    description?: string;
+    region: Region;
+    status: Status;
+    preview: Preview;
+    transferUrl: string;
+    uploadState: UploadState;
+    size: number;
+    filesNumber: number;
+    created: string;
+    modified?: string;
+    //availabilityEndDate: string;
+    //availabilityStartDate: string;
+    availabilityDuration: number;
+    queue: number;
+    queuedUntil: string;
 }

@@ -1,4 +1,4 @@
-import { Transfer as TransferSdk } from '@smash-sdk/transfer/10-2019';
+import { errors, Transfer as TransferSdk } from '@smash-sdk/transfer/01-2024';
 import { UploaderStatus } from '../globals/constant';
 import { UploadInput, UpdateInput } from '../interface/Input';
 import { UploaderParameters } from '../interface/UploaderParameters';
@@ -15,6 +15,9 @@ import { Logger } from './Logger';
 import { Queue } from './Queue';
 import { Transfer } from './Transfer';
 import { UpdateOutput } from '../interface/Output';
+import { TransferAlreadyStartingError, TransferAlreadyFinishingError, TransferAlreadyFinishedError, TransferAlreadyCancelingError, TransferAlreadyCanceledError, TransferIsInErrorError, UnknownError, InvalidParameterError, NetworkError, TransferNotFoundError } from '../errors/errors';
+import { UploaderError } from '../SmashUploader';
+import { Preview, Region, Status, UploadState } from '../interface/Transfer';
 
 export interface Queues {
     taskQueue: Queue<Task>,
@@ -27,10 +30,144 @@ export interface Queues {
     lockTransferQueue: Queue<LockTransfer>,
 }
 
+export interface StartingContext extends Context {
+    startingDate: string;
+    //status
+}
+
+export interface StartedContext extends Context {
+    startedDate: string;
+    //status
+    //TODO FIX ME create CreatedTransfer interface 
+    transfer: Transfer &
+    {
+        id: string,
+        region: Region,
+        status: Status,
+        preview: Preview,
+        transferUrl: string,
+        uploadState: UploadState,
+        created: string,
+        availabilityDuration: number,
+        queue: number,//TODO FIX ME is this used?
+        queuedUntil: string,
+    };
+}
+
+export interface QueuedContext extends Context {
+    queuedDate: string;
+    //status
+    transfer: Transfer &
+    {
+        id: string,
+        region: Region,
+        status: Status,
+        preview: Preview,
+        transferUrl: string,
+        uploadState: UploadState,
+        created: string,
+        availabilityDuration: number,
+        queue: number,//TODO FIX ME is this used?
+        queuedUntil: string,
+    };
+}
+export interface QueueFinishedContext extends Context {
+    queueFinishedDate: string;
+    //status
+    transfer: Transfer &
+    {
+        id: string,
+        region: Region,
+        status: Status,
+        preview: Preview,
+        transferUrl: string,
+        uploadState: UploadState,
+        created: string,
+        availabilityDuration: number,
+        queue: number,//TODO FIX ME is this used?
+        queuedUntil: string,
+    };
+}
+
+export interface PausedContext extends Context {
+    pausedDate: string;
+    //status
+    transfer: Transfer &
+    {
+        id: string,
+        region: Region,
+        status: Status,
+        preview: Preview,
+        transferUrl: string,
+        uploadState: UploadState,
+        created: string,
+        availabilityDuration: number,
+        queue: number,//TODO FIX ME is this used?
+        queuedUntil: string,
+    };
+}
+
+export interface FinishingContext extends Context {
+    finishingDate: string;
+    //status
+    transfer: Transfer &
+    {
+        id: string,
+        region: Region,
+        status: Status,
+        preview: Preview,
+        transferUrl: string,
+        uploadState: UploadState,
+        created: string,
+        availabilityDuration: number,
+        queue: number,//TODO FIX ME is this used?
+        queuedUntil: string,
+    };
+}
+
+export interface FinishedContext extends Context {
+    finishedDate: string;
+    startedDate: string;
+    //status
+    transfer: Transfer &
+    {
+        id: string,
+        region: Region,
+        status: Status,
+        preview: Preview,
+        transferUrl: string,
+        uploadState: UploadState,
+        created: string,
+        availabilityDuration: number,
+        queue: number,//TODO FIX ME is this used?
+        queuedUntil: string,
+        availabilityEndDate: string,
+        availabilityStartDate: string,
+    };
+}
+
+export interface CancelContext extends Context {
+    cancelDate: string;
+    //status
+    transfer: Transfer &
+    {
+        id: string,
+        region: Region,
+        status: Status,
+        preview: Preview,
+        transferUrl: string,
+        uploadState: UploadState,
+        created: string,
+        availabilityDuration: number,
+        queue: number,//TODO FIX ME is this used?
+        queuedUntil: string,
+    };
+}
+
 export class Context {// FIX ME change to UploaderParameters class which does sanity check
     readonly logger: Logger;
     public transferSdk: TransferSdk;
-    public uploaderParameters: UploaderParameters; 
+    public uploaderParameters: UploaderParameters;
 
     public lastValueUploadedBytes = 0;
     public speed = 0;
@@ -42,12 +179,17 @@ export class Context {// FIX ME change to UploaderParameters class which does sa
     public startingDate?: string;
     public startedDate?: string;
     public queuedDate?: string;
+    public localEndOfQueueTimestamp?: number;
+    public queueFinishedDate?: string;
+    public pausedDate?: string;
     public uploadingDate?: string;
     public finishingDate?: string;
     public finishedDate?: string;
     public cancelDate?: string;
 
-    public status: UploaderStatus = UploaderStatus.Pending; //FIX ME TODO initial status? if status id can
+    public localQueuedUntilDate?: string;
+
+    public status: UploaderStatus = UploaderStatus.Pending;
 
     public taskQueue = new Queue<Task>();
     public createTransferQueue = new Queue<CreateTransfer>();
@@ -83,13 +225,38 @@ export class Context {// FIX ME change to UploaderParameters class which does sa
         // for exemple with an object
         return new Promise(async (resolve, reject) => {
             try {
-                this.transfer!.files = new Files(params.files);
-                this.createFileQueue = new Queue<CreateFile>();
-                this.transfer!.files.forEach(file => {
-                    this.createFileQueue.add(new CreateFile(this, file));
-                });
-                const response = await this.transferSdk.updateTransfer({ transferId: this.transfer!.id!, ...params });
+                if (this.status === UploaderStatus.Finished) {
+                    throw new TransferAlreadyFinishedError('Unable to update transfer, upload is finished.');
+                }
+                if (params?.files) {
+                    if (this.status === UploaderStatus.Starting) {
+                        throw new TransferAlreadyStartingError('Unable to update transfer files, upload is starting.');
+                    }
+                    if (this.status === UploaderStatus.Started) {
+                        throw new TransferAlreadyStartingError('Unable to update transfer files, upload is started.');
+                    }
+                    if (this.status === UploaderStatus.Finishing) {
+                        throw new TransferAlreadyFinishingError('Unable to update transfer files, upload is finishing.');
+                    }
+                    if (this.status === UploaderStatus.Canceling) {
+                        throw new TransferAlreadyCancelingError('Unable to update transfer files, upload is canceling.');
+                    }
+                    if (this.status === UploaderStatus.Canceled) {
+                        throw new TransferAlreadyCanceledError('Unable to update transfer files, upload is canceled.');
+                    }
+                    if (this.status === UploaderStatus.Error) {
+                        throw new TransferIsInErrorError('Unable to update transfer files, upload is in error.');
+                    }
+                    this.transfer!.files = new Files(params.files);
+                    this.createFileQueue = new Queue<CreateFile>();
+                    this.transfer!.files.forEach(file => {
+                        this.createFileQueue.add(new CreateFile(this, file));
+                    });
+                }
+
+                const response = await this.transferSdk.updateTransfer({ transferId: this.transfer!.id!, ...params, size: this.transfer?.files.size, filesNumber: this.transfer?.files.length });
                 this.transfer!.populateUpdatedTransfer(response);
+                this.localEndOfQueueTimestamp = Date.now() + this.transfer!.queue! * 1000;
                 resolve({
                     transfer: {
                         id: response.transfer.id,
@@ -97,9 +264,7 @@ export class Context {// FIX ME change to UploaderParameters class which does sa
                         region: response.transfer.region,
                         transferUrl: response.transfer.transferUrl,
                         uploadState: response.transfer.uploadState,
-                        availabilityEndDate: response.transfer.availabilityEndDate,
                         availabilityDuration: response.transfer.availabilityDuration,
-                        availabilityStartDate: response.transfer.availabilityStartDate,
                         size: response.transfer.size,
                         preview: response.transfer.preview,
                         created: response.transfer.created,
@@ -108,56 +273,73 @@ export class Context {// FIX ME change to UploaderParameters class which does sa
                     }
                 });
             } catch (error) {
+                if (error instanceof errors.UpdateTransfer.TransferAlreadyLockedError) {
+                    reject(new InvalidParameterError(error));
+                }
+                if (error instanceof errors.UpdateTransfer.TransferAlreadyLockedError) {
+                    reject(new TransferAlreadyFinishedError(error));
+                }
+                if (error instanceof errors.UpdateTransfer.InternalServerError
+                    || error instanceof errors.UpdateTransfer.BadGatewayError
+                    || error instanceof errors.UpdateTransfer.NetworkError
+                    || error instanceof errors.UpdateTransfer.GatewayTimeoutError
+                    || error instanceof errors.UpdateTransfer.UnknownError) {
+                    reject(new UploaderError(error));
+                }
+                if (error instanceof errors.UpdateTransferError.NotFoundError) {
+                    reject(new TransferNotFoundError(error));
+                }
                 reject(error);
             }
         })
     }
 
-    //FIX ME Aborted && aborting or only one status is usefull?
-    public cancel(): Context {
+    public cancel(): CancelContext {
         this.status = UploaderStatus.Canceling;
         this.cancelDate = new Date().toISOString();
-        return this;
+        return this as CancelContext;
     }
 
-    // FIX ME is this usefull dual status?
-    public starting(): Context {
+    public starting(): StartingContext {
         this.status = UploaderStatus.Starting;
         this.startingDate = new Date().toISOString();
-        return this;
+        return this as StartingContext;
     }
 
-    // FIX ME is this usefull dual status?
-    public started(): Context {
+    public started(): StartedContext {
         this.status = UploaderStatus.Started;
         this.startedDate = new Date().toISOString();
-        return this;
+        return this as StartedContext;
     }
 
-    public queued(): Context {  
+    public queued(): QueuedContext {
         this.status = UploaderStatus.Queued;
         this.queuedDate = new Date().toISOString();
-        return this;
+        return this as QueuedContext;
     }
 
-    public uploading(): Context {
-        this.status = UploaderStatus.Uploading;
-        this.uploadingDate = new Date().toISOString();
-        return this;
+    public queueFinished(): QueueFinishedContext {
+        this.status = UploaderStatus.QueueFinished;
+        this.queueFinishedDate = new Date().toISOString();
+        return this as QueueFinishedContext;
     }
 
-    //FIX ME usefull to have dual status finishing and finished
-    public finishing(): Context {
+    public paused(): PausedContext {
+        this.status = UploaderStatus.Paused;
+        this.pausedDate = new Date().toISOString();
+        return this as PausedContext;
+    }
+
+    public finishing(): FinishingContext {
         this.status = UploaderStatus.Finishing;
         this.finishingDate = new Date().toISOString();
-        return this;
+        return this as FinishingContext;
     }
 
-    //FIX ME usefull to have dual status finishing and finished
-    public finished(): Context {
+    public finished(): FinishedContext {
         this.status = UploaderStatus.Finished;
         this.finishedDate = new Date().toISOString();
-        return this;
+        return this as FinishedContext;
     }
 
     public error(): Context {
@@ -165,12 +347,36 @@ export class Context {// FIX ME change to UploaderParameters class which does sa
         return this;
     }
 
-    public isFinished(): boolean { //FIX ME dual status is usefull or not?
+    public isStarted(): boolean {
+        return this.status === UploaderStatus.Started;
+    }
+
+    public isFinished(): boolean {
         return this.status === UploaderStatus.Finished;
     }
 
-    public isCanceled(): boolean { //FIX ME dual status is usefull or not?
+    public isCanceled(): boolean {
         return this.status === UploaderStatus.Canceling || this.status === UploaderStatus.Canceled;
+    }
+
+    public isOnError(): boolean {
+        return this.status === UploaderStatus.Error;
+    }
+
+    public isPaused(): boolean {
+        return this.status === UploaderStatus.Paused;
+    }
+
+    public isQueued(): boolean {
+        return this.status === UploaderStatus.Queued;
+    }
+
+    public isQueueFinished(): boolean {
+        return this.status === UploaderStatus.QueueFinished;
+    }
+
+    public hasQueue(): boolean {
+        return typeof this.transfer?.queue === "number" && this.transfer.queue > 0;
     }
 
     public unrecoverableUploadError(): Context {
@@ -183,7 +389,7 @@ export class Context {// FIX ME change to UploaderParameters class which does sa
     }
 
     public shouldStopProcessTask(): boolean {
-        return this.isCanceled() || this.onError();
+        return this.isPaused() || this.isCanceled() || this.onError();
     }
 
     public getStatus(): UploaderStatus {

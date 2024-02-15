@@ -43,24 +43,48 @@ export class FileSystemAbortError extends UploaderError {
     name = "FileSystemAbortError";
 }
 
-export class TransferAlreadyStartedError extends UploaderError {
-    name = "TransferAlreadyStartedError";
-}
-
 export class EmptyFileListError extends UploaderError {
     name = "EmptyFileListError";
-}
-
-export class TransferAlreadyFinishedError extends UploaderError {
-    name = "TransferAlreadyFinishedError";
 }
 
 export class UnvalidTokenError extends UploaderError {
     name = "UnvalidTokenError";
 }
 
-export class TransferIsInQueueError extends UploaderError {
-    name = "TransferIsInQueueError";
+export class TransferAlreadyStartingError extends UploaderError {
+    name = "TransferAlreadyStartingError";
+}
+
+export class TransferAlreadyStartedError extends UploaderError {
+    name = "TransferAlreadyStartedError";
+}
+
+export class TransferAlreadyCancelingError extends UploaderError {
+    name = "TransferAlreadyCancelingError";
+}
+
+export class TransferAlreadyCanceledError extends UploaderError {
+    name = "TransferAlreadyCanceledError";
+}
+
+export class TransferAlreadyFinishingError extends UploaderError {
+    name = "TransferAlreadyFinishingError";
+}
+
+export class TransferAlreadyFinishedError extends UploaderError {
+    name = "TransferAlreadyFinishedError";
+}
+
+export class TransferAlreadyPausedError extends UploaderError {
+    name = "TransferAlreadyPausedError";
+}
+
+export class TransferAlreadyQueuedError extends UploaderError {
+    name = "TransferAlreadyQueuedError";
+}
+
+export class TransferIsInErrorError extends UploaderError {
+    name = "TransferIsInErrorError";
 }
 
 export class NetworkError extends UploaderError {
@@ -109,4 +133,12 @@ export class UsageExceededError extends UploaderError {
 
 export class CustomUrlAlreadyInUseError extends UploaderError {
     name = "CustomUrlAlreadyInUseError";
+}
+
+export class TransferNotFoundError extends UploaderError {
+    name = "TransferNotFoundError";
+}
+
+export class UnknownError extends UploaderError {
+    name = "UnknownError";
 }

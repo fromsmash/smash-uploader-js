@@ -7,7 +7,7 @@ export interface ChangesInput {
 
 export class ChangesEvent implements CustomEvent {
     public name = 'changes';
-    public event: UploaderEvent;
+    public event: Partial<UploaderEvent>;
 
     constructor({ event }: ChangesInput) {
         this.event = event;

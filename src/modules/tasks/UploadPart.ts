@@ -1,5 +1,5 @@
 import { SDKError, UploadProgressEvent } from '@smash-sdk/core';
-import { UploadTransferFilePartInput, UploadTransferFilePartOutput } from '@smash-sdk/transfer/10-2019';
+import { UploadTransferFilePartInput, UploadTransferFilePartOutput } from '@smash-sdk/transfer/07-2022';
 import fs from 'fs';
 import { Context } from '../../core/Context';
 import { FileItem } from '../../core/FileItem';
@@ -23,54 +23,54 @@ export class UploadPart extends AbstractTask<Task> {
     private response!: UploadTransferFilePartOutput;
 
     protected readonly sdkFatalErrors: typeof SDKError[] = [
-        this.context.transferSdk.errors.UploadTransferFilePartError.BadRequestError,
-        this.context.transferSdk.errors.UploadTransferFilePartError.InternalServerError,
-        this.context.transferSdk.errors.UploadTransferFilePartError.UnknownError,
-        this.context.transferSdk.errors.UploadTransferFilePartError.NoSuchUploadError, // FIX ME We should retry one time and if error occurs again, delete file and recreate it
-        this.context.transferSdk.errors.UploadTransferFilePartError.AccessControlListNotSupportedError,
-        this.context.transferSdk.errors.UploadTransferFilePartError.AccessDeniedError,
-        this.context.transferSdk.errors.UploadTransferFilePartError.AccessPointAlreadyOwnedByYouError,
-        this.context.transferSdk.errors.UploadTransferFilePartError.AccountProblemError,
-        this.context.transferSdk.errors.UploadTransferFilePartError.AllAccessDisabledError,
-        this.context.transferSdk.errors.UploadTransferFilePartError.AmbiguousGrantByEmailAddressError,
-        this.context.transferSdk.errors.UploadTransferFilePartError.AuthorizationHeaderMalformedError,
-        this.context.transferSdk.errors.UploadTransferFilePartError.EntityTooSmallError,
-        this.context.transferSdk.errors.UploadTransferFilePartError.EntityTooLargeError,
-        this.context.transferSdk.errors.UploadTransferFilePartError.IllegalLocationConstraintExceptionError,
-        this.context.transferSdk.errors.UploadTransferFilePartError.IllegalVersioningConfigurationExceptionError,
-        this.context.transferSdk.errors.UploadTransferFilePartError.IncompleteBodyError,
-        this.context.transferSdk.errors.UploadTransferFilePartError.InlineDataTooLargeError,
-        this.context.transferSdk.errors.UploadTransferFilePartError.InvalidAccessKeyIdError,
-        this.context.transferSdk.errors.UploadTransferFilePartError.InvalidArgumentError,
-        this.context.transferSdk.errors.UploadTransferFilePartError.InvalidBucketNameError,
-        this.context.transferSdk.errors.UploadTransferFilePartError.InvalidBucketStateError,
-        this.context.transferSdk.errors.UploadTransferFilePartError.InvalidDigestError,
-        this.context.transferSdk.errors.UploadTransferFilePartError.InvalidLocationConstraintError,
-        this.context.transferSdk.errors.UploadTransferFilePartError.InvalidObjectStateError,
-        this.context.transferSdk.errors.UploadTransferFilePartError.InvalidPartError,
-        this.context.transferSdk.errors.UploadTransferFilePartError.InvalidPayerError,
-        this.context.transferSdk.errors.UploadTransferFilePartError.InvalidPolicyDocumentError,
-        this.context.transferSdk.errors.UploadTransferFilePartError.InvalidRangeError,
-        this.context.transferSdk.errors.UploadTransferFilePartError.InvalidSecurityError,
-        this.context.transferSdk.errors.UploadTransferFilePartError.InvalidDigestError,
-        this.context.transferSdk.errors.UploadTransferFilePartError.InvalidTokenError,
-        this.context.transferSdk.errors.UploadTransferFilePartError.InvalidURIError,
-        this.context.transferSdk.errors.UploadTransferFilePartError.KeyTooLongError,
-        this.context.transferSdk.errors.UploadTransferFilePartError.MaxMessageLengthExceededError,
-        this.context.transferSdk.errors.UploadTransferFilePartError.MetadataTooLargeError,
-        this.context.transferSdk.errors.UploadTransferFilePartError.MissingContentLengthError,
-        this.context.transferSdk.errors.UploadTransferFilePartError.MissingRequestBodyError,
-        this.context.transferSdk.errors.UploadTransferFilePartError.MissingSecurityHeaderError,
-        this.context.transferSdk.errors.UploadTransferFilePartError.NoSuchBucketError,
-        this.context.transferSdk.errors.UploadTransferFilePartError.NoSuchBucketPolicyError,
-        this.context.transferSdk.errors.UploadTransferFilePartError.NoSuchCORSConfigurationError,
-        this.context.transferSdk.errors.UploadTransferFilePartError.NoSuchKeyError,
-        this.context.transferSdk.errors.UploadTransferFilePartError.NotImplementedError,
-        this.context.transferSdk.errors.UploadTransferFilePartError.RequestHeaderSectionTooLargeError,
-        this.context.transferSdk.errors.UploadTransferFilePartError.ServerSideEncryptionConfigurationNotFoundError,
-        this.context.transferSdk.errors.UploadTransferFilePartError.ServiceUnavailableError,
-        this.context.transferSdk.errors.UploadTransferFilePartError.UnexpectedContentError,
-        this.context.transferSdk.errors.UploadTransferFilePartError.UserKeyMustBeSpecifiedError,
+        this.context.transferSdk.errors.UploadTransferFilePart.BadRequestError,
+        this.context.transferSdk.errors.UploadTransferFilePart.InternalServerError,
+        this.context.transferSdk.errors.UploadTransferFilePart.UnknownError,
+        this.context.transferSdk.errors.UploadTransferFilePart.NoSuchUploadError, // FIX ME We should retry one time and if error occurs again, delete file and recreate it
+        this.context.transferSdk.errors.UploadTransferFilePart.AccessControlListNotSupportedError,
+        this.context.transferSdk.errors.UploadTransferFilePart.AccessDeniedError,
+        this.context.transferSdk.errors.UploadTransferFilePart.AccessPointAlreadyOwnedByYouError,
+        this.context.transferSdk.errors.UploadTransferFilePart.AccountProblemError,
+        this.context.transferSdk.errors.UploadTransferFilePart.AllAccessDisabledError,
+        this.context.transferSdk.errors.UploadTransferFilePart.AmbiguousGrantByEmailAddressError,
+        this.context.transferSdk.errors.UploadTransferFilePart.AuthorizationHeaderMalformedError,
+        this.context.transferSdk.errors.UploadTransferFilePart.EntityTooSmallError,
+        this.context.transferSdk.errors.UploadTransferFilePart.EntityTooLargeError,
+        this.context.transferSdk.errors.UploadTransferFilePart.IllegalLocationConstraintExceptionError,
+        this.context.transferSdk.errors.UploadTransferFilePart.IllegalVersioningConfigurationExceptionError,
+        this.context.transferSdk.errors.UploadTransferFilePart.IncompleteBodyError,
+        this.context.transferSdk.errors.UploadTransferFilePart.InlineDataTooLargeError,
+        this.context.transferSdk.errors.UploadTransferFilePart.InvalidAccessKeyIdError,
+        this.context.transferSdk.errors.UploadTransferFilePart.InvalidArgumentError,
+        this.context.transferSdk.errors.UploadTransferFilePart.InvalidBucketNameError,
+        this.context.transferSdk.errors.UploadTransferFilePart.InvalidBucketStateError,
+        this.context.transferSdk.errors.UploadTransferFilePart.InvalidDigestError,
+        this.context.transferSdk.errors.UploadTransferFilePart.InvalidLocationConstraintError,
+        this.context.transferSdk.errors.UploadTransferFilePart.InvalidObjectStateError,
+        this.context.transferSdk.errors.UploadTransferFilePart.InvalidPartError,
+        this.context.transferSdk.errors.UploadTransferFilePart.InvalidPayerError,
+        this.context.transferSdk.errors.UploadTransferFilePart.InvalidPolicyDocumentError,
+        this.context.transferSdk.errors.UploadTransferFilePart.InvalidRangeError,
+        this.context.transferSdk.errors.UploadTransferFilePart.InvalidSecurityError,
+        this.context.transferSdk.errors.UploadTransferFilePart.InvalidDigestError,
+        this.context.transferSdk.errors.UploadTransferFilePart.InvalidTokenError,
+        this.context.transferSdk.errors.UploadTransferFilePart.InvalidURIError,
+        this.context.transferSdk.errors.UploadTransferFilePart.KeyTooLongError,
+        this.context.transferSdk.errors.UploadTransferFilePart.MaxMessageLengthExceededError,
+        this.context.transferSdk.errors.UploadTransferFilePart.MetadataTooLargeError,
+        this.context.transferSdk.errors.UploadTransferFilePart.MissingContentLengthError,
+        this.context.transferSdk.errors.UploadTransferFilePart.MissingRequestBodyError,
+        this.context.transferSdk.errors.UploadTransferFilePart.MissingSecurityHeaderError,
+        this.context.transferSdk.errors.UploadTransferFilePart.NoSuchBucketError,
+        this.context.transferSdk.errors.UploadTransferFilePart.NoSuchBucketPolicyError,
+        this.context.transferSdk.errors.UploadTransferFilePart.NoSuchCORSConfigurationError,
+        this.context.transferSdk.errors.UploadTransferFilePart.NoSuchKeyError,
+        this.context.transferSdk.errors.UploadTransferFilePart.NotImplementedError,
+        this.context.transferSdk.errors.UploadTransferFilePart.RequestHeaderSectionTooLargeError,
+        this.context.transferSdk.errors.UploadTransferFilePart.ServerSideEncryptionConfigurationNotFoundError,
+        this.context.transferSdk.errors.UploadTransferFilePart.ServiceUnavailableError,
+        this.context.transferSdk.errors.UploadTransferFilePart.UnexpectedContentError,
+        this.context.transferSdk.errors.UploadTransferFilePart.UserKeyMustBeSpecifiedError,
     ];
 
     protected readonly nativeFatalErrors: Array<typeof UploaderError> = [
@@ -109,70 +109,71 @@ export class UploadPart extends AbstractTask<Task> {
                 };
                 this.response = await this.context.transferSdk.uploadTransferFilePart(uploadTransferFilePartParameters);
             } catch (error: unknown) {
-                if (error instanceof this.context.transferSdk.errors.UploadTransferFilePartError.BadRequestError ||
-                    error instanceof this.context.transferSdk.errors.UploadTransferFilePartError.InternalServerError ||
-                    error instanceof this.context.transferSdk.errors.UploadTransferFilePartError.UnknownError ||
-                    error instanceof this.context.transferSdk.errors.UploadTransferFilePartError.NoSuchUploadError || // FIX ME We should retry one time and if error occurs again, delete file and recreate it
-                    error instanceof this.context.transferSdk.errors.UploadTransferFilePartError.AccessControlListNotSupportedError ||
-                    error instanceof this.context.transferSdk.errors.UploadTransferFilePartError.AccessDeniedError ||
-                    error instanceof this.context.transferSdk.errors.UploadTransferFilePartError.AccessPointAlreadyOwnedByYouError ||
-                    error instanceof this.context.transferSdk.errors.UploadTransferFilePartError.AccountProblemError ||
-                    error instanceof this.context.transferSdk.errors.UploadTransferFilePartError.AllAccessDisabledError ||
-                    error instanceof this.context.transferSdk.errors.UploadTransferFilePartError.AmbiguousGrantByEmailAddressError ||
-                    error instanceof this.context.transferSdk.errors.UploadTransferFilePartError.AuthorizationHeaderMalformedError ||
-                    error instanceof this.context.transferSdk.errors.UploadTransferFilePartError.EntityTooSmallError ||
-                    error instanceof this.context.transferSdk.errors.UploadTransferFilePartError.EntityTooLargeError ||
-                    error instanceof this.context.transferSdk.errors.UploadTransferFilePartError.IllegalLocationConstraintExceptionError ||
-                    error instanceof this.context.transferSdk.errors.UploadTransferFilePartError.IllegalVersioningConfigurationExceptionError ||
-                    error instanceof this.context.transferSdk.errors.UploadTransferFilePartError.IncompleteBodyError ||
-                    error instanceof this.context.transferSdk.errors.UploadTransferFilePartError.InlineDataTooLargeError ||
-                    error instanceof this.context.transferSdk.errors.UploadTransferFilePartError.InvalidAccessKeyIdError ||
-                    error instanceof this.context.transferSdk.errors.UploadTransferFilePartError.InvalidArgumentError ||
-                    error instanceof this.context.transferSdk.errors.UploadTransferFilePartError.InvalidBucketNameError ||
-                    error instanceof this.context.transferSdk.errors.UploadTransferFilePartError.InvalidBucketStateError ||
-                    error instanceof this.context.transferSdk.errors.UploadTransferFilePartError.InvalidDigestError ||
-                    error instanceof this.context.transferSdk.errors.UploadTransferFilePartError.InvalidLocationConstraintError ||
-                    error instanceof this.context.transferSdk.errors.UploadTransferFilePartError.InvalidObjectStateError ||
-                    error instanceof this.context.transferSdk.errors.UploadTransferFilePartError.InvalidPartError ||
-                    error instanceof this.context.transferSdk.errors.UploadTransferFilePartError.InvalidPayerError ||
-                    error instanceof this.context.transferSdk.errors.UploadTransferFilePartError.InvalidPolicyDocumentError ||
-                    error instanceof this.context.transferSdk.errors.UploadTransferFilePartError.InvalidRangeError ||
-                    error instanceof this.context.transferSdk.errors.UploadTransferFilePartError.InvalidSecurityError ||
-                    error instanceof this.context.transferSdk.errors.UploadTransferFilePartError.InvalidDigestError ||
-                    error instanceof this.context.transferSdk.errors.UploadTransferFilePartError.InvalidTokenError ||
-                    error instanceof this.context.transferSdk.errors.UploadTransferFilePartError.InvalidURIError ||
-                    error instanceof this.context.transferSdk.errors.UploadTransferFilePartError.KeyTooLongError ||
-                    error instanceof this.context.transferSdk.errors.UploadTransferFilePartError.MaxMessageLengthExceededError ||
-                    error instanceof this.context.transferSdk.errors.UploadTransferFilePartError.MetadataTooLargeError ||
-                    error instanceof this.context.transferSdk.errors.UploadTransferFilePartError.MissingContentLengthError ||
-                    error instanceof this.context.transferSdk.errors.UploadTransferFilePartError.MissingRequestBodyError ||
-                    error instanceof this.context.transferSdk.errors.UploadTransferFilePartError.MissingSecurityHeaderError ||
-                    error instanceof this.context.transferSdk.errors.UploadTransferFilePartError.NoSuchBucketError ||
-                    error instanceof this.context.transferSdk.errors.UploadTransferFilePartError.NoSuchBucketPolicyError ||
-                    error instanceof this.context.transferSdk.errors.UploadTransferFilePartError.NoSuchCORSConfigurationError ||
-                    error instanceof this.context.transferSdk.errors.UploadTransferFilePartError.NoSuchKeyError ||
-                    error instanceof this.context.transferSdk.errors.UploadTransferFilePartError.NotImplementedError ||
-                    error instanceof this.context.transferSdk.errors.UploadTransferFilePartError.RequestHeaderSectionTooLargeError ||
-                    error instanceof this.context.transferSdk.errors.UploadTransferFilePartError.ServerSideEncryptionConfigurationNotFoundError ||
-                    error instanceof this.context.transferSdk.errors.UploadTransferFilePartError.ServiceUnavailableError ||
-                    error instanceof this.context.transferSdk.errors.UploadTransferFilePartError.UnexpectedContentError ||
-                    error instanceof this.context.transferSdk.errors.UploadTransferFilePartError.UserKeyMustBeSpecifiedError ||
-                    error instanceof this.context.transferSdk.errors.UploadTransferFilePartError.BadRequestError ||
-                    error instanceof this.context.transferSdk.errors.UploadTransferFilePartError.InternalServerError ||
-                    error instanceof this.context.transferSdk.errors.UploadTransferFilePartError.UnknownError ||
+                if (error instanceof this.context.transferSdk.errors.UploadTransferFilePart.BadRequestError ||
+                    error instanceof this.context.transferSdk.errors.UploadTransferFilePart.InternalServerError ||
+                    error instanceof this.context.transferSdk.errors.UploadTransferFilePart.UnknownError ||
+                    error instanceof this.context.transferSdk.errors.UploadTransferFilePart.NoSuchUploadError || // FIX ME We should retry one time and if error occurs again, delete file and recreate it
+                    error instanceof this.context.transferSdk.errors.UploadTransferFilePart.AccessControlListNotSupportedError ||
+                    error instanceof this.context.transferSdk.errors.UploadTransferFilePart.AccessDeniedError ||
+                    error instanceof this.context.transferSdk.errors.UploadTransferFilePart.AccessPointAlreadyOwnedByYouError ||
+                    error instanceof this.context.transferSdk.errors.UploadTransferFilePart.AccountProblemError ||
+                    error instanceof this.context.transferSdk.errors.UploadTransferFilePart.AllAccessDisabledError ||
+                    error instanceof this.context.transferSdk.errors.UploadTransferFilePart.AmbiguousGrantByEmailAddressError ||
+                    error instanceof this.context.transferSdk.errors.UploadTransferFilePart.AuthorizationHeaderMalformedError ||
+                    error instanceof this.context.transferSdk.errors.UploadTransferFilePart.EntityTooSmallError ||
+                    error instanceof this.context.transferSdk.errors.UploadTransferFilePart.EntityTooLargeError ||
+                    error instanceof this.context.transferSdk.errors.UploadTransferFilePart.IllegalLocationConstraintExceptionError ||
+                    error instanceof this.context.transferSdk.errors.UploadTransferFilePart.IllegalVersioningConfigurationExceptionError ||
+                    error instanceof this.context.transferSdk.errors.UploadTransferFilePart.IncompleteBodyError ||
+                    error instanceof this.context.transferSdk.errors.UploadTransferFilePart.InlineDataTooLargeError ||
+                    error instanceof this.context.transferSdk.errors.UploadTransferFilePart.InvalidAccessKeyIdError ||
+                    error instanceof this.context.transferSdk.errors.UploadTransferFilePart.InvalidArgumentError ||
+                    error instanceof this.context.transferSdk.errors.UploadTransferFilePart.InvalidBucketNameError ||
+                    error instanceof this.context.transferSdk.errors.UploadTransferFilePart.InvalidBucketStateError ||
+                    error instanceof this.context.transferSdk.errors.UploadTransferFilePart.InvalidDigestError ||
+                    error instanceof this.context.transferSdk.errors.UploadTransferFilePart.InvalidLocationConstraintError ||
+                    error instanceof this.context.transferSdk.errors.UploadTransferFilePart.InvalidObjectStateError ||
+                    error instanceof this.context.transferSdk.errors.UploadTransferFilePart.InvalidPartError ||
+                    error instanceof this.context.transferSdk.errors.UploadTransferFilePart.InvalidPayerError ||
+                    error instanceof this.context.transferSdk.errors.UploadTransferFilePart.InvalidPolicyDocumentError ||
+                    error instanceof this.context.transferSdk.errors.UploadTransferFilePart.InvalidRangeError ||
+                    error instanceof this.context.transferSdk.errors.UploadTransferFilePart.InvalidSecurityError ||
+                    error instanceof this.context.transferSdk.errors.UploadTransferFilePart.InvalidDigestError ||
+                    error instanceof this.context.transferSdk.errors.UploadTransferFilePart.InvalidTokenError ||
+                    error instanceof this.context.transferSdk.errors.UploadTransferFilePart.InvalidURIError ||
+                    error instanceof this.context.transferSdk.errors.UploadTransferFilePart.KeyTooLongError ||
+                    error instanceof this.context.transferSdk.errors.UploadTransferFilePart.MaxMessageLengthExceededError ||
+                    error instanceof this.context.transferSdk.errors.UploadTransferFilePart.MetadataTooLargeError ||
+                    error instanceof this.context.transferSdk.errors.UploadTransferFilePart.MissingContentLengthError ||
+                    error instanceof this.context.transferSdk.errors.UploadTransferFilePart.MissingRequestBodyError ||
+                    error instanceof this.context.transferSdk.errors.UploadTransferFilePart.MissingSecurityHeaderError ||
+                    error instanceof this.context.transferSdk.errors.UploadTransferFilePart.NoSuchBucketError ||
+                    error instanceof this.context.transferSdk.errors.UploadTransferFilePart.NoSuchBucketPolicyError ||
+                    error instanceof this.context.transferSdk.errors.UploadTransferFilePart.NoSuchCORSConfigurationError ||
+                    error instanceof this.context.transferSdk.errors.UploadTransferFilePart.NoSuchKeyError ||
+                    error instanceof this.context.transferSdk.errors.UploadTransferFilePart.NotImplementedError ||
+                    error instanceof this.context.transferSdk.errors.UploadTransferFilePart.RequestHeaderSectionTooLargeError ||
+                    error instanceof this.context.transferSdk.errors.UploadTransferFilePart.ServerSideEncryptionConfigurationNotFoundError ||
+                    error instanceof this.context.transferSdk.errors.UploadTransferFilePart.ServiceUnavailableError ||
+                    error instanceof this.context.transferSdk.errors.UploadTransferFilePart.UnexpectedContentError ||
+                    error instanceof this.context.transferSdk.errors.UploadTransferFilePart.UserKeyMustBeSpecifiedError ||
+                    error instanceof this.context.transferSdk.errors.UploadTransferFilePart.BadRequestError ||
+                    error instanceof this.context.transferSdk.errors.UploadTransferFilePart.InternalServerError ||
+                    error instanceof this.context.transferSdk.errors.UploadTransferFilePart.UnknownError ||
                     // FIX ME Should not happen because we don't send any digest in header, but in future we should add CRC32 in header
                     error instanceof this.context.transferSdk.errors.UploadTransferFilePartError.BadDigestError ||
                     // FIX ME Should not happen because we don't send any digest in header, but in future we should add CRC32 in header
-                    error instanceof this.context.transferSdk.errors.UploadTransferFilePartError.InvalidDigestError ||
-                    error instanceof this.context.transferSdk.errors.UploadTransferFilePartError.ExpiredTokenError ||
-                    error instanceof this.context.transferSdk.errors.UploadTransferFilePartError.InternalError ||
-                    error instanceof this.context.transferSdk.errors.UploadTransferFilePartError.InvalidTokenError ||
-                    error instanceof this.context.transferSdk.errors.UploadTransferFilePartError.RequestTimeoutError ||
-                    error instanceof this.context.transferSdk.errors.UploadTransferFilePartError.RequestTimeTooSkewedError ||
-                    error instanceof this.context.transferSdk.errors.UploadTransferFilePartError.SignatureDoesNotMatchError ||
-                    error instanceof this.context.transferSdk.errors.UploadTransferFilePartError.SlowDownError ||
-                    error instanceof this.context.transferSdk.errors.UploadTransferFilePartError.TokenRefreshRequiredError ||
-                    error instanceof this.context.transferSdk.errors.UploadTransferFilePartError.NetworkError
+                    error instanceof this.context.transferSdk.errors.UploadTransferFilePart.InvalidDigestError ||
+                    error instanceof this.context.transferSdk.errors.UploadTransferFilePart.ExpiredTokenError ||
+                    error instanceof this.context.transferSdk.errors.UploadTransferFilePart.InternalError ||
+                    error instanceof this.context.transferSdk.errors.UploadTransferFilePart.InvalidTokenError ||
+                    error instanceof this.context.transferSdk.errors.UploadTransferFilePart.RequestTimeoutError ||
+                    error instanceof this.context.transferSdk.errors.UploadTransferFilePart.RequestTimeTooSkewedError ||
+                    error instanceof this.context.transferSdk.errors.UploadTransferFilePart.SignatureDoesNotMatchError ||
+                    error instanceof this.context.transferSdk.errors.UploadTransferFilePart.SlowDownError ||
+                    error instanceof this.context.transferSdk.errors.UploadTransferFilePart.TokenRefreshRequiredError ||
+                    error instanceof this.context.transferSdk.errors.UploadTransferFilePart.NetworkError ||
+                    error instanceof this.context.transferSdk.errors.UploadTransferFilePart.EtagIsMissingError
                 ) {
                     this.error = new TaskError(this, error);
                 } else {
@@ -207,22 +208,24 @@ export class UploadPart extends AbstractTask<Task> {
                 this.error.unrecoverableError(new UploaderError(this.error.getError() as SDKError));
             } else if (this.error.isInstanceOfOneOfTheseErrors(this.nativeFatalErrors)) {
                 this.error.unrecoverableError(this.error.getError() as UploaderError);
-            } else if (this.error.getError() instanceof this.context.transferSdk.errors.UploadTransferFilePartError.NetworkError) {
+            } else if (this.error.getError() instanceof this.context.transferSdk.errors.UploadTransferFilePart.NetworkError ||
+                this.error.getError() instanceof this.context.transferSdk.errors.UploadTransferFilePart.RequestTimeoutError ||
+                this.error.getError() instanceof this.context.transferSdk.errors.UploadTransferFilePart.EtagIsMissingError
+            ) {
                 this.error.setRecoveryTask(this.error.getTask()); // FIX ME add delay as second optional arg
             } else if (this.executionNumber < this.maxExecutionNumber &&
                 (
-                    this.error.getError() instanceof this.context.transferSdk.errors.UploadTransferFilePartError.InternalError ||
-                    this.error.getError() instanceof this.context.transferSdk.errors.UploadTransferFilePartError.RequestTimeoutError ||
-                    this.error.getError() instanceof this.context.transferSdk.errors.UploadTransferFilePartError.RequestTimeTooSkewedError ||
-                    this.error.getError() instanceof this.context.transferSdk.errors.UploadTransferFilePartError.SignatureDoesNotMatchError ||
-                    this.error.getError() instanceof this.context.transferSdk.errors.UploadTransferFilePartError.SlowDownError
+                    this.error.getError() instanceof this.context.transferSdk.errors.UploadTransferFilePart.InternalError ||
+                    this.error.getError() instanceof this.context.transferSdk.errors.UploadTransferFilePart.RequestTimeTooSkewedError ||
+                    this.error.getError() instanceof this.context.transferSdk.errors.UploadTransferFilePart.SignatureDoesNotMatchError ||
+                    this.error.getError() instanceof this.context.transferSdk.errors.UploadTransferFilePart.SlowDownError
                 )
             ) {
-                this.error.setRecoveryTask(this.error.getTask());
+                this.error.setRecoveryTask(this.error.getTask(), { backoffEnabled: true });
             } else if (
-                this.error.getError() instanceof this.context.transferSdk.errors.UploadTransferFilePartError.ExpiredTokenError ||
-                this.error.getError() instanceof this.context.transferSdk.errors.UploadTransferFilePartError.InvalidTokenError ||
-                this.error.getError() instanceof this.context.transferSdk.errors.UploadTransferFilePartError.TokenRefreshRequiredError
+                this.error.getError() instanceof this.context.transferSdk.errors.UploadTransferFilePart.ExpiredTokenError ||
+                this.error.getError() instanceof this.context.transferSdk.errors.UploadTransferFilePart.InvalidTokenError ||
+                this.error.getError() instanceof this.context.transferSdk.errors.UploadTransferFilePart.TokenRefreshRequiredError
             ) {
                 this.retryPart();
             } else {

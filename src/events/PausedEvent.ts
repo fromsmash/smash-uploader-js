@@ -1,25 +1,21 @@
 import { CustomEvent } from '../core/CustomEventEmitter';
 import { TransferBaseEventData } from '../interface/Transfer';
 
-export interface StartedEventInput {
+export interface PausedEventInput {
     transfer: TransferBaseEventData;
-    startedDate: string;
 }
 
-export class StartedEvent implements CustomEvent {
-    public name = 'started';
+export class PausedEvent implements CustomEvent {
+    public name = 'paused';
     public transfer: TransferBaseEventData;
-    public startedDate: string;
 
-    constructor({ transfer, startedDate }: StartedEventInput) {
+    constructor({ transfer }: PausedEventInput) {
         this.transfer = { ...transfer };
-        this.startedDate = startedDate;
     }
 
     get data() {
         return {
             transfer: this.transfer,
-            startedDate: this.startedDate,
         }
     }
 }

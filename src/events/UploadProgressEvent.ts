@@ -1,22 +1,8 @@
 import { CustomEvent } from '../core/CustomEventEmitter';
-import { Transfer } from '../core/Transfer';
+import { TransferBaseEventData } from '../interface/Transfer';
 
 export interface UploadProgressEventInput {
-    transfer: {
-        id: string;
-        status: string;
-        region: string;
-        transferUrl: string;
-        uploadState: string;
-        availabilityEndDate: string;
-        availabilityDuration: number;
-        availabilityStartDate: string;
-        preview: string;
-        created: string;
-        modified: string;
-        size: number;
-        filesNumber: number;
-    };
+    transfer: TransferBaseEventData;
     uploadedBytes: number;
     percent: number;
     speed: number;
@@ -25,21 +11,7 @@ export interface UploadProgressEventInput {
 }
 export class UploadProgressEvent implements CustomEvent {
     public name = 'progress';
-    public transfer: {
-        id: string;
-        status: string;
-        region: string;
-        transferUrl: string;
-        uploadState: string;
-        availabilityEndDate: string;
-        availabilityDuration: number;
-        availabilityStartDate: string;
-        preview: string;
-        created: string;
-        modified: string;
-        size: number;
-        filesNumber: number;
-    };
+    public transfer: TransferBaseEventData;
     public lastUploadProgressEvent?: UploadProgressEvent;
     public uploadedBytes: number;
     public percent: number;
@@ -48,7 +20,7 @@ export class UploadProgressEvent implements CustomEvent {
     public remainingTime: number;
 
     constructor({ transfer, uploadedBytes, percent, speed, estimatedTime, remainingTime }: UploadProgressEventInput) {
-        this.transfer = transfer;
+        this.transfer = { ...transfer };
         this.uploadedBytes = uploadedBytes;
         this.percent = percent;
         this.speed = speed;
@@ -58,6 +30,7 @@ export class UploadProgressEvent implements CustomEvent {
 
     get data() {
         return {
+            transfer: this.transfer,
             speed: this.speed,
             estimatedTime: this.estimatedTime,
             remainingTime: this.remainingTime,

@@ -1,34 +1,24 @@
 import { SDKError } from '@smash-sdk/core';
 
+interface ErrorDetails {
+    name?: string;
+    type?: string;
+    reason?: string;
+    expected?: string;
+    given?: number;
+    min?: number;
+    max?: number;
+    primary?: string;
+    secondary?: string;
+}
+
 export class UploaderError extends Error {
     code?: number;
     error?: string;
     requestId?: string;
-    details?: {
-        name?: string;
-        type?: string;
-        reason?: string;
-        expected?: string;
-        given?: number;
-        min?: number;
-        max?: number;
-        primary?: string;
-        secondary?: string;
-    }
+    details?: ErrorDetails;
 
-    constructor(error: SDKError | Error | string | {
-        message: string, 
-        details?: {
-            name?: string;
-            type?: string;
-            reason?: string;
-            expected?: string;
-            given?: number;
-            min?: number;
-            max?: number;
-            primary?: string;
-        }
-    }) {
+    constructor(error: SDKError | Error | string | { message: string, details?: ErrorDetails }) {
         super();
         if (error instanceof SDKError) {
             this.name = error.name;

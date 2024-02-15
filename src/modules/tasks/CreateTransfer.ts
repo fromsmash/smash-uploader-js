@@ -1,4 +1,4 @@
-import { CreateTeamTransferInput, CreateTeamTransferOutput, CreateTransferInput, CreateTransferOutput } from '@smash-sdk/transfer/10-2019';
+import { CreateTeamTransferInput, CreateTeamTransferOutput, CreateTransferInput, CreateTransferOutput } from '@smash-sdk/transfer/01-2024';
 import { SDKError } from '@smash-sdk/core';
 import { Context } from '../../core/Context';
 import { CustomizationInput, Transfer } from '../../core/Transfer';
@@ -20,18 +20,12 @@ export class CreateTransfer extends AbstractTask<Task> {
         this.context.transferSdk.errors.CreateTeamTransferError.UnauthorizedError,
         this.context.transferSdk.errors.CreateTransferError.InvalidParameterError,
         this.context.transferSdk.errors.CreateTeamTransferError.InvalidParameterError,
-        this.context.transferSdk.errors.CreateTransferError.InvalidDeliveryError,
-        this.context.transferSdk.errors.CreateTeamTransferError.InvalidDeliveryError,
         this.context.transferSdk.errors.CreateTransferError.EmailNotAllowedError,
         this.context.transferSdk.errors.CreateTeamTransferError.EmailNotAllowedError,
         this.context.transferSdk.errors.CreateTransferError.InvalidAvailabilityDurationError,
         this.context.transferSdk.errors.CreateTeamTransferError.InvalidAvailabilityDurationError,
         this.context.transferSdk.errors.CreateTransferError.InvalidSubscriptionError,
         this.context.transferSdk.errors.CreateTeamTransferError.InvalidSubscriptionError,
-        this.context.transferSdk.errors.CreateTransferError.MissingReceiversError,
-        this.context.transferSdk.errors.CreateTeamTransferError.MissingReceiversError,
-        this.context.transferSdk.errors.CreateTransferError.MissingSenderError,
-        this.context.transferSdk.errors.CreateTeamTransferError.MissingSenderError,
         this.context.transferSdk.errors.CreateTransferError.PasswordRequiredError,
         this.context.transferSdk.errors.CreateTeamTransferError.PasswordRequiredError,
         this.context.transferSdk.errors.CreateTransferError.UsageExceededError,
@@ -60,7 +54,7 @@ export class CreateTransfer extends AbstractTask<Task> {
                 preview: context.transfer.preview,
                 accessTracking: context.transfer.accessTracking,
                 password: context.transfer.password,
-                notificationType: context.transfer.notificationType,
+                notification: context.transfer.notification,
                 description: context.transfer.description,
                 filesNumber: context.transfer.filesNumber,
                 teamId: context.transfer.teamId,
@@ -78,7 +72,7 @@ export class CreateTransfer extends AbstractTask<Task> {
                 preview: context.transfer!.preview,
                 accessTracking: context.transfer!.accessTracking,
                 password: context.transfer!.password,
-                notificationType: context.transfer!.notificationType,
+                notification: context.transfer!.notification,
                 description: context.transfer!.description,
                 filesNumber: context.transfer!.filesNumber,
             };
@@ -110,6 +104,7 @@ export class CreateTransfer extends AbstractTask<Task> {
 
     public postProcess(context: Context): Task | null {
         this.transfer.populateCreatedTransfer(this.response);
+        this.context.localEndOfQueueTimestamp = Date.now() + this.transfer!.queue! * 1000;
         this.transfer.files.forEach(file => {
             context.createFileQueue.add(new CreateFile(context, file));
         });
@@ -132,12 +127,6 @@ export class CreateTransfer extends AbstractTask<Task> {
                     const publicError = new InvalidParameterError(this.error.getError() as SDKError);
                     this.error.unrecoverableError(publicError);
                 } else if (
-                    this.error.getError() instanceof this.context.transferSdk.errors.CreateTransferError.InvalidDeliveryError ||
-                    this.error.getError() instanceof this.context.transferSdk.errors.CreateTeamTransferError.InvalidDeliveryError
-                ) {
-                    const publicError = new InvalidDeliveryError(this.error.getError() as SDKError);
-                    this.error.unrecoverableError(publicError);
-                } else if (
                     this.error.getError() instanceof this.context.transferSdk.errors.CreateTransferError.EmailNotAllowedError ||
                     this.error.getError() instanceof this.context.transferSdk.errors.CreateTeamTransferError.EmailNotAllowedError
                 ) {
@@ -154,18 +143,6 @@ export class CreateTransfer extends AbstractTask<Task> {
                     this.error.getError() instanceof this.context.transferSdk.errors.CreateTeamTransferError.InvalidSubscriptionError
                 ) {
                     const publicError = new InvalidSubscriptionError(this.error.getError() as SDKError);
-                    this.error.unrecoverableError(publicError);
-                } else if (
-                    this.error.getError() instanceof this.context.transferSdk.errors.CreateTransferError.MissingReceiversError ||
-                    this.error.getError() instanceof this.context.transferSdk.errors.CreateTeamTransferError.MissingReceiversError
-                ) {
-                    const publicError = new MissingReceiversError(this.error.getError() as SDKError);
-                    this.error.unrecoverableError(publicError);
-                } else if (
-                    this.error.getError() instanceof this.context.transferSdk.errors.CreateTransferError.MissingSenderError ||
-                    this.error.getError() instanceof this.context.transferSdk.errors.CreateTeamTransferError.MissingSenderError
-                ) {
-                    const publicError = new MissingSenderError(this.error.getError() as SDKError);
                     this.error.unrecoverableError(publicError);
                 } else if (
                     this.error.getError() instanceof this.context.transferSdk.errors.CreateTransferError.PasswordRequiredError ||

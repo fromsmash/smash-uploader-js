@@ -8,9 +8,7 @@ export class CanceledEvent implements CustomEvent {
     public name = 'canceled';
     public cancelDate: string;
 
-    constructor({
-        cancelDate
-    }: CanceledEventInput) {
+    constructor({ cancelDate }: CanceledEventInput) {
         this.cancelDate = cancelDate;
     }
 

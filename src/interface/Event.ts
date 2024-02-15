@@ -8,4 +8,4 @@ import { StatusEvent } from '../events/StatusEvent';
 import { UploadErrorEvent } from '../events/UploadErrorEvent';
 import { UploadProgressEvent } from '../events/UploadProgressEvent';
 
-export type UploaderEvent = StartedEvent | StartingEvent | QueuedEvent | StatusEvent | UploadProgressEvent | FinishingEvent | FinishedEvent | UploadErrorEvent | CanceledEvent
+export type UploaderEvent = StartedEvent | StartingEvent | QueuedEvent | StatusEvent | UploadProgressEvent | FinishingEvent | FinishedEvent | UploadErrorEvent | CanceledEvent;

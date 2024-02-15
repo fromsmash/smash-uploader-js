@@ -12,15 +12,14 @@ import {
     GetTransferFileOutput,
     UpdateTransferOutput,
     UploadTransferFilePartOutput,
-} from '@smash-sdk/transfer/07-2020';
-//import { LockTransferOutput } from '@smash-sdk/transfer/10-2019';
+} from '@smash-sdk/transfer/01-2024';
 
 import { UploadInput } from '../interface/Input';
 import { FileItem } from './FileItem';
 import { Files } from './Files';
 import { Part } from './Part';
 import { Parts } from './Parts';
-import { AccessTracking, DeliveryType, NotificationType, Preview, Region, Status, UploadState } from '../interface/Transfer';
+import { AccessTracking, DeliveryType, Language, Notification, Preview, Region, Status, UploadState } from '../interface/Transfer';
 
 type CustomizationOutput = {
     logo?: {
@@ -57,14 +56,15 @@ export class Transfer {
     public teamId?: string;
     public domain?: string;
     public customUrl?: string;
-    public language?: string;
+    public language?: Language;
     public availabilityStartDate?: string;
     public availabilityDuration?: number;
     public availabilityEndDate?: string;
     public title?: string;
+    public queue?: number;
     public queuedUntil?: string;
     public delivery?: {
-        type: DeliveryType,
+        type?: string,
         sender?: {
             name?: string,
             email: string,
@@ -80,7 +80,7 @@ export class Transfer {
 
     public preview?: Preview;
     public accessTracking?: AccessTracking;
-    public notificationType?: NotificationType;
+    public notification?: Notification;
     public password?: string;
     public description?: string;
     public parallelFiles!: number;
@@ -110,7 +110,7 @@ export class Transfer {
             this.promotion = transferParameters.promotion;
             this.preview = transferParameters.preview;
             this.accessTracking = transferParameters.accessTracking;
-            this.notificationType = transferParameters.notificationType;
+            this.notification = transferParameters.notification;
             this.password = transferParameters.password;
             this.description = transferParameters.description;
         }
@@ -147,6 +147,7 @@ export class Transfer {
         this.availabilityDuration = transfer.availabilityDuration;
         this.availabilityStartDate = transfer.availabilityStartDate;
         this.delivery = transfer.delivery;
+        this.queue = transfer.queue;
         this.queuedUntil = transfer.queuedUntil;
         return this;
     }
@@ -168,6 +169,7 @@ export class Transfer {
         this.availabilityDuration = transfer.availabilityDuration;
         this.availabilityStartDate = transfer.availabilityStartDate;
         this.delivery = transfer.delivery;
+        this.queue = transfer.queue;
         this.queuedUntil = transfer.queuedUntil;
         return this;
     }
