@@ -1,25 +1,17 @@
 import {
-    CreateTransferFileOutput,
-    CreateTransferFilePartsOutput,
-    LockTransferOutput,
+    CreateDropboxTransferOutput, CreateTeamTransferOutput, CreateTransferFileOutput,
+    CreateTransferFilePartsOutput, CreateTransferOutput, GetTeamTransferFileOutput, GetTeamTransferOutput, GetTransferFileOutput, GetTransferOutput, LockTransferOutput,
     UpdateTransferFileOutput,
-    UpdateTransferFilePartsOutput,
-    CreateTeamTransferOutput,
-    CreateTransferOutput,
-    GetTeamTransferOutput,
-    GetTeamTransferFileOutput,
-    GetTransferOutput,
-    GetTransferFileOutput,
-    UpdateTransferOutput,
-    UploadTransferFilePartOutput,
+    UpdateTransferFilePartsOutput, UpdateTransferOutput,
+    UploadTransferFilePartOutput
 } from '@smash-sdk/transfer/01-2024';
 
 import { UploadInput } from '../interface/Input';
+import { AccessTracking, Language, Notification, Preview, Region, Status, UploadState } from '../interface/Transfer';
 import { FileItem } from './FileItem';
 import { Files } from './Files';
 import { Part } from './Part';
 import { Parts } from './Parts';
-import { AccessTracking, DeliveryType, Language, Notification, Preview, Region, Status, UploadState } from '../interface/Transfer';
 
 type CustomizationOutput = {
     logo?: {
@@ -54,6 +46,7 @@ export class Transfer {
     public modified?: string;
     public deleted?: string;
     public teamId?: string;
+    public dropboxId?: string;
     public domain?: string;
     public customUrl?: string;
     public language?: Language;
@@ -92,8 +85,12 @@ export class Transfer {
         //sanity check transferParameters with joi
         this.files = new Files(transferParameters.files);
         if (transferParameters) {
-            this.teamId = transferParameters.teamId;
-            this.customUrl = transferParameters.customUrl;
+            if ('dropboxId' in transferParameters) {
+                this.dropboxId = transferParameters.dropboxId;
+            } else {
+                this.teamId = transferParameters.teamId;
+                this.customUrl = transferParameters.customUrl;
+            }
             this.language = transferParameters.language;
             this.availabilityDuration = transferParameters.availabilityDuration;
             this.title = transferParameters.title;
@@ -124,7 +121,7 @@ export class Transfer {
         return this.files.length;
     }
 
-    public populateCreatedTransfer({ transfer }: CreateTransferOutput | CreateTeamTransferOutput): Transfer {
+    public populateCreatedTransfer({ transfer }: CreateTransferOutput | CreateTeamTransferOutput | CreateDropboxTransferOutput): Transfer {
         this.id = transfer.id;
         this.title = transfer.title;
         this.status = transfer.status;
@@ -149,6 +146,9 @@ export class Transfer {
         this.delivery = transfer.delivery;
         this.queue = transfer.queue;
         this.queuedUntil = transfer.queuedUntil;
+        if ('dropbox' in transfer) {
+            this.dropboxId = transfer.dropbox;
+        }
         return this;
     }
 

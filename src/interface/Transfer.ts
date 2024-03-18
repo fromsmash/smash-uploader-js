@@ -44,6 +44,10 @@ export interface CreateTransfer extends UpdateTransfer {
     customUrl?: string,
 }
 
+export interface CreateDropboxTransfer extends UpdateTransfer {
+    dropboxId: string;
+}
+
 export interface TransferFiles {
     files: File[] | string[] | { name: string, file: File | string }[] | { name: string, content: string | Buffer }[];
 }

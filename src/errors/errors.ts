@@ -131,6 +131,10 @@ export class UsageExceededError extends UploaderError {
     name = "UsageExceededError";
 }
 
+export class OwnerUsageExceededError extends UploaderError {
+    name = "OwnerUsageExceededError";
+}
+
 export class CustomUrlAlreadyInUseError extends UploaderError {
     name = "CustomUrlAlreadyInUseError";
 }
