@@ -133,7 +133,9 @@ export class CreateTransfer extends AbstractTask<Task> {
 
     public postProcess(context: Context): Task | null {
         this.transfer.populateCreatedTransfer(this.response);
-        this.context.localEndOfQueueTimestamp = Date.now() + this.transfer!.queue! * 1000;
+        if (this.transfer.queue && this.transfer.queue > 0) {
+            this.context.localEndOfQueueTimestamp = Date.now() + this.transfer!.queue! * 1000;
+        }
         this.transfer.files.forEach(file => {
             context.createFileQueue.add(new CreateFile(context, file));
         });

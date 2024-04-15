@@ -256,7 +256,11 @@ export class Context {// FIX ME change to UploaderParameters class which does sa
 
                 const response = await this.transferSdk.updateTransfer({ transferId: this.transfer!.id!, ...params, size: this.transfer?.files.size, filesNumber: this.transfer?.files.length });
                 this.transfer!.populateUpdatedTransfer(response);
-                this.localEndOfQueueTimestamp = Date.now() + this.transfer!.queue! * 1000;
+                if (this.transfer?.queue && this.transfer.queue > 0) {
+                    this.localEndOfQueueTimestamp = Date.now() + this.transfer!.queue! * 1000;
+                } else {
+                    this.localEndOfQueueTimestamp = undefined;
+                }
                 resolve({
                     transfer: {
                         id: response.transfer.id,
