@@ -8,8 +8,8 @@
 <br/>
 <p align="center">
   <a href="https://npmjs.com/package/@smash-sdk/uploader"><img src="https://img.shields.io/npm/v/@smash-sdk/uploader.svg" /></a>
-  <a href="https://unpkg.com/@smash-sdk/uploader@2.1.2/dist/SmashUploader.browser.js"><img src="https://img.badgesize.io/https://unpkg.com/@smash-sdk/uploader@2.1.2/dist/SmashUploader.browser.js?compression=gzip&color=green" /></a>
-  <a href="https://unpkg.com/@smash-sdk/uploader@2.1.2/dist/SmashUploader.browser.js"><img src="https://img.badgesize.io/https://unpkg.com/@smash-sdk/uploader@2.1.2/dist/SmashUploader.browser.js?color=green" /></a>
+  <a href="https://unpkg.com/@smash-sdk/uploader@2.1.3/dist/SmashUploader.browser.js"><img src="https://img.badgesize.io/https://unpkg.com/@smash-sdk/uploader@2.1.3/dist/SmashUploader.browser.js?compression=gzip&color=green" /></a>
+  <a href="https://unpkg.com/@smash-sdk/uploader@2.1.3/dist/SmashUploader.browser.js"><img src="https://img.badgesize.io/https://unpkg.com/@smash-sdk/uploader@2.1.3/dist/SmashUploader.browser.js?color=green" /></a>
   <br/>
   <img src="https://badges.herokuapp.com/browsers?labels=none&googlechrome=latest&firefox=latest&microsoftedge=latest&edge=latest&safari=latest&iphone=latest" />
 </p>
@@ -55,7 +55,7 @@ npm install @smash-sdk/uploader
 For browser usage, you can use it directly from the unpkg CDN:
 
 ```html
-<script src="https://unpkg.com/@smash-sdk/uploader@2.1.2/dist/SmashUploader.browser.js"></script>
+<script src="https://unpkg.com/@smash-sdk/uploader@2.1.3/dist/SmashUploader.browser.js"></script>
 ```
 
 ### Generating an API Key
@@ -81,7 +81,7 @@ const { SmashUploader } = require('@smash-sdk/uploader');
 For browser usage, you can use it directly from the unpkg CDN:
 
 ```html
-<script src="https://unpkg.com/@smash-sdk/uploader@2.1.2/dist/SmashUploader.browser.js"></script>
+<script src="https://unpkg.com/@smash-sdk/uploader@2.1.3/dist/SmashUploader.browser.js"></script>
 ```
 
 
@@ -148,7 +148,17 @@ You can find example browser usage and integration of SmashUploaderJS in the ded
       - `logo` (optional): A string containing the URL of the logo to use for the transfer.
       - `background` (optional): A string containing the URL of the background image to use for the transfer.
   - `accessTracking` (optional): A string indicating whether to track access to the transfer. Valid values are `"Email"` and `"None"`.
-  - `notificationType` (optional): A string indicating the type of notification to send. Valid values are `"None"` and `"All"`.
+  - `notification` (optional): An object containing options for enable/disable notifications, including:
+      - `sender` (optional): An object containing options for sender notifications (only for `"Email"` delivery type), including:
+          - `enabled`: A boolean indicating whether to send a confirmation email to the sender when the transfer is uploaded and send to the receiver(s).
+      - `receiver` (optional): An object containing options for receiver notifications (only for `"Email"` delivery type), including:
+          - `enabled`: A boolean indicating whether to send a notification email to the receiver(s).
+      - `link` (optional): An object containing options for link notifications (only for `"Link"` delivery type), including:
+          - `enabled`: A boolean indicating whether to send a confirmation email with the transfer download link to the sender.
+      - `download` (optional): An object containing options for download notifications, including:
+          - `enabled`: A boolean indicating whether to send email notifications to the sender when the transfer is downloaded.
+      - `noDownload` (optional): An object containing options for no download notifications, including:
+          - `enabled`: A boolean indicating whether to send email notification when the transfer is about to expire and has not been downloaded.      
 
 UploadOutput
 
