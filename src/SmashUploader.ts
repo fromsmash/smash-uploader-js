@@ -185,6 +185,8 @@ export class SmashUploader extends CustomEventEmitter {
         const startedEvent = new StartedEvent(context);
         this.emit(startedEvent.name, startedEvent);
         this.emitChanges(startedEvent);
+        this.startProgressTimer();
+        this.startSpeedTimer();
     }
 
     private startQueueTimer() {
@@ -509,8 +511,7 @@ export class SmashUploader extends CustomEventEmitter {
 
                 this.emitStarting();
                 this.context.createTransfer(params);
-                this.startProgressTimer();
-                this.startSpeedTimer();
+
                 this.addConnections(this.initiaParallelConnections);
             } catch (error: unknown) {
                 this.emitError(error);
