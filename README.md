@@ -1,6 +1,6 @@
 <p align="center">
-  <a href="https://api.fromsmash.com/"><img src="https://developer.fromsmash.com/LOGO_SMASH_API.png" align="center" width="135" /></a> 
-  <h1 align="center">SmashUploaderJS - Upload library <br>powered by the Smash API & SDK</h1> 
+  <a href="https://fromsmash.com/"><img src="https://developer.fromsmash.com/LOGO_SMASH_API.png" align="center" width="135" alt="Send Big Files"/></a>
+  <h1 align="center">SmashUploaderJS - Upload library <br>powered by the Smash API & SDK</h1>
 </p>
 <p align="center">
   <strong>Official JavaScript library to upload & share large files and folders (Node.js, browsers) using the Smash API & SDK 🚀</strong>
