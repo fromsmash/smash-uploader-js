@@ -1,44 +1,20 @@
 const path = require('path');
-const nodeExternals = require('webpack-node-externals');
 const TerserPlugin = require('terser-webpack-plugin');
 
-const server = {
-    mode: 'production',
-    entry: './src/SmashUploader.ts',
-    module: {
-        rules: [
-            {
-                test: /\.ts?$/,
-                use: 'ts-loader',
-                exclude: path.resolve(__dirname, 'node_modules'),
-            },
-        ],
-    },
-    devtool: 'source-map',
-    externals: [
-        nodeExternals(),
-    ],
-    output: {
-        path: __dirname + '/dist/',
-        filename: 'SmashUploader.js',
-        libraryTarget: 'umd',
-        globalObject: 'this',
-        clean: true
-    },
-    resolve: {
-        extensions: ['.ts', '.js'],
-    },
-    target: 'node',
-};
 
-const browser = {
+module.exports = {
     mode: 'production',
     entry: './src/SmashUploader.ts',
     module: {
         rules: [
             {
                 test: /\.ts?$/,
-                use: 'ts-loader',
+                use: [{
+                    loader: 'ts-loader',
+                    options: {
+                        configFile: "tsconfig.browser.json"
+                    }
+                }],
                 exclude: path.resolve(__dirname, 'node_modules'),
             },
         ],
@@ -57,6 +33,10 @@ const browser = {
         },
     },
     target: 'web',
+    optimization: {
+        minimize: true,
+        minimizer: [new TerserPlugin({
+            extractComments: false,
+        })],
+    },
 };
-
-module.exports = [server, browser];

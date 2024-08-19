@@ -1,6 +1,6 @@
 <p align="center">
-  <a href="https://fromsmash.com/"><img src="https://developer.fromsmash.com/LOGO_SMASH_API.png" align="center" width="135" alt="Send Big Files"/></a>
-  <h1 align="center">SmashUploaderJS - Upload library <br>powered by the Smash API & SDK</h1>
+  <a href="https://fromsmash.com/"><img src="https://developer.fromsmash.com/LOGO_SMASH_API.png" align="center" width="135" alt="Send big files"/></a> 
+  <h1 align="center">SmashUploaderJS - Upload library <br>powered by the Smash API & SDK</h1> 
 </p>
 <p align="center">
   <strong>Official JavaScript library to upload & share large files and folders (Node.js, browsers) using the Smash API & SDK 🚀</strong>
@@ -8,8 +8,8 @@
 <br/>
 <p align="center">
   <a href="https://npmjs.com/package/@smash-sdk/uploader"><img src="https://img.shields.io/npm/v/@smash-sdk/uploader.svg" /></a>
-  <a href="https://unpkg.com/@smash-sdk/uploader@2.1.5/dist/SmashUploader.browser.js"><img src="https://img.badgesize.io/https://unpkg.com/@smash-sdk/uploader@2.1.5/dist/SmashUploader.browser.js?compression=gzip&color=green" /></a>
-  <a href="https://unpkg.com/@smash-sdk/uploader@2.1.5/dist/SmashUploader.browser.js"><img src="https://img.badgesize.io/https://unpkg.com/@smash-sdk/uploader@2.1.5/dist/SmashUploader.browser.js?color=green" /></a>
+  <a href="https://unpkg.com/@smash-sdk/uploader@2.1.4/dist/SmashUploader.browser.js"><img src="https://img.badgesize.io/https://unpkg.com/@smash-sdk/uploader@2.1.4/dist/SmashUploader.browser.js?compression=gzip&color=green" /></a>
+  <a href="https://unpkg.com/@smash-sdk/uploader@2.1.4/dist/SmashUploader.browser.js"><img src="https://img.badgesize.io/https://unpkg.com/@smash-sdk/uploader@2.1.4/dist/SmashUploader.browser.js?color=green" /></a>
   <br/>
   <img src="https://badges.herokuapp.com/browsers?labels=none&googlechrome=latest&firefox=latest&microsoftedge=latest&edge=latest&safari=latest&iphone=latest" />
 </p>
@@ -55,7 +55,7 @@ npm install @smash-sdk/uploader
 For browser usage, you can use it directly from the unpkg CDN:
 
 ```html
-<script src="https://unpkg.com/@smash-sdk/uploader@2.1.5/dist/SmashUploader.browser.js"></script>
+<script src="https://unpkg.com/@smash-sdk/uploader@2.1.4/dist/SmashUploader.browser.js"></script>
 ```
 
 ### Generating an API Key
@@ -81,7 +81,7 @@ const { SmashUploader } = require('@smash-sdk/uploader');
 For browser usage, you can use it directly from the unpkg CDN:
 
 ```html
-<script src="https://unpkg.com/@smash-sdk/uploader@2.1.5/dist/SmashUploader.browser.js"></script>
+<script src="https://unpkg.com/@smash-sdk/uploader@2.1.4/dist/SmashUploader.browser.js"></script>
 ```
 
 

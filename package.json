@@ -2,11 +2,13 @@
   "name": "@smash-sdk/uploader",
   "version": "2.1.5",
   "description": "Smash uploader library",
-  "main": "./dist/SmashUploader.js",
   "files": [
     "dist",
     "README.md"
   ],
+  "main": "./dist/cjs/SmashUploader.js",
+  "module": "./dist/esm/SmashUploader.js",
+  "types": "./dist/types/SmashUploader.d.ts",
   "keywords": [
     "smash",
     "fromsmash",
@@ -43,8 +45,10 @@
     "await"
   ],
   "scripts": {
-    "build": "npm run webpack && npm run build:readme && npm run test:build && npm run test",
-    "transpile": "tsc",
+    "build": "npm run webpack && npm run build:cjs && npm run build:esm && npm run build:types && npm run build:readme && npm run test:build && npm run test",
+    "build:cjs": "tsc -p tsconfig.cjs.json",
+    "build:esm": "tsc -p tsconfig.esm.json",
+    "build:types": "tsc -p tsconfig.types.json",
     "test": "jest",
     "test:coverage": "jest --coverage",
     "test:build:complete": "npm run transpile && node ./test/test-build.js",
@@ -74,7 +78,9 @@
   },
   "dependencies": {
     "@smash-sdk/core": "^2.1.1",
-    "@smash-sdk/transfer": "^0.1.4",
     "uuid": "^8.3.2"
+  },
+  "optionalDependencies": {
+    "@smash-sdk/transfer": "^0.1.4"
   }
 }
